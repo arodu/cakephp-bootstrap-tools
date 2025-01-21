@@ -94,7 +94,7 @@ enum ActionItem: string implements ActionElementInterface
             ],
 
             self::Cancel => [
-                'type' => ActionElement::TYPE_BUTTON_LINK,
+                'type' => ActionElement::TYPE_LINK,
                 'label' => __('Cancel'),
                 'url' => ['action' => 'index'],
                 'color' => Color::SECONDARY,

@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
@@ -32,6 +33,7 @@ class ActionElementsHelper extends Helper
      */
     protected array $_defaultConfig = [
         'defaultGroup' => false,
+        'actionItemClass' => ActionItem::class,
     ];
     protected array $options = [];
 
@@ -62,9 +64,11 @@ class ActionElementsHelper extends Helper
         if ($item instanceof ActionElementInterface) {
             $actionElement = $item->getActionElement($options);
         } elseif (is_string($item)) {
-            $actionElement = ActionItem::tryFrom($item)->getActionElement($options);
+            $actionItemClass = $this->getConfig('actionItemClass');
+            $actionElement = $actionItemClass::tryFrom($item)->getActionElement($options);
         } elseif (is_array($item) && isset($item['type'])) {
-            $actionElement = ActionItem::tryFrom($item['type'])->getActionElement($item);
+            $actionItemClass = $this->getConfig('actionItemClass');
+            $actionElement = $actionItemClass::tryFrom($item['type'])->getActionElement($item);
         } elseif (is_array($item)) {
             $actionElement = new ActionElement($item);
         }
@@ -94,11 +98,6 @@ class ActionElementsHelper extends Helper
         }
 
         return $this;
-    }
-
-    protected function actionType(string $type, array $options = []): ActionItem
-    {
-        return ActionItem::tryFrom($type);
     }
 
     /**
@@ -134,7 +133,6 @@ class ActionElementsHelper extends Helper
         if ($options['group'] ?? $this->getConfig('defaultGroup') ?? false) {
             $output = $this->Html->tag('div', $output, ['class' => 'btn-group', 'role' => 'group']);
         }
-
         $this->defaultScope();
 
         return $output;
@@ -195,6 +193,8 @@ class ActionElementsHelper extends Helper
      */
     protected function formatOptions(array $item): array
     {
+        $item = Hash::merge($this->options[$this->getScopeName()] ?? [], $item);
+
         $label = $item['label'] ?? null;
         $url = $item['url'] ?? null;
 

@@ -8,7 +8,6 @@ namespace BootstrapTools\View\ActionElement;
 class ActionElement
 {
     public const TYPE_LINK = 'link';
-    public const TYPE_BUTTON_LINK = 'button_link';
     public const TYPE_POSTLINK = 'postlink';
     public const TYPE_LIMIT_CONTROL = 'limit_control';
     public const TYPE_SUBMIT = 'submit';
