@@ -29,7 +29,7 @@ trait RegisterScopeDataTrait
     public function setScopeData(mixed $data, string $scope = null): self
     {
         $scope = $this->getScopeName($scope);
-        $this->scopeItems[$scope] = $data;
+        $this->scopeItems[$scope][] = $data;
 
         return $this;
     }
@@ -70,12 +70,12 @@ trait RegisterScopeDataTrait
     /**
      * @param string $scope
      * @param boolean $overwrite
-     * @return void
+     * @return self
      */
     public function withScope(string $scope, bool $overwrite = false)
     {
         if ($overwrite) {
-            $this->resetScope($scope);
+            $this->deleteScopeData($scope);
         }
 
         $this->currentScope = $scope;

@@ -4,14 +4,14 @@ declare(strict_types=1);
 namespace BootstrapTools\View\Helper;
 
 use BootstrapTools\Utility\RegisterScopeDataTrait;
-use BootstrapTools\View\ActionElement\ActionElement;
+use BootstrapTools\View\ActionElement\ActionItem;
 use BootstrapTools\View\ActionElement\ActionElementInterface;
-use BootstrapTools\View\ActionElement\ActionElementOptions;
+use BootstrapTools\View\ActionElement\ActionElement;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
 
 /**
- * ActionElementHelper
+ * ActionElementsHelper
  * 
  * Helper for rendering action groups.
  * 
@@ -21,7 +21,7 @@ use Cake\View\Helper;
  * - Optionally set the scope with withScope()
  * 
  */
-class ActionElementHelper extends Helper
+class ActionElementsHelper extends Helper
 {
     use RegisterScopeDataTrait;
 
@@ -41,7 +41,7 @@ class ActionElementHelper extends Helper
      * @param array $options
      * @return self
      */
-    public function options(array $options): self
+    public function withOptions(array $options): self
     {
         $scope = $this->getScopeName($options['scope'] ?? null);
         $this->options[$scope] = $options;
@@ -50,28 +50,27 @@ class ActionElementHelper extends Helper
     }
 
     /**
-     * @param \BootstrapTools\View\ActionElement|array|string $item
+     * @param ActionElementInterface|array|string $item
      * @param array $options
      * @return self
      */
-    public function setItem(string|array|ActionElement $item, array $options = []): self
+    public function setItem(ActionElementInterface|array|string $item, array $options = []): self
     {
         $scope = $this->getScopeName($options['scope'] ?? null);
         $options = Hash::merge($this->options[$scope] ?? [], $options);
 
-        $ActionType = $item;
-        if (is_string($item)) {
-            $ActionType = ActionElement::tryFrom($item);
+        if ($item instanceof ActionElementInterface) {
+            $actionElement = $item->getActionElement($options);
+        } elseif (is_string($item)) {
+            $actionElement = ActionItem::tryFrom($item)->getActionElement($options);
         } elseif (is_array($item) && isset($item['type'])) {
-            $ActionType = ActionElement::tryFrom($item['type']);
+            $actionElement = ActionItem::tryFrom($item['type'])->getActionElement($item);
         } elseif (is_array($item)) {
-            $item = array_merge($item, $options);
+            $actionElement = new ActionElement($item);
         }
 
-        if ($ActionType instanceof ActionElementInterface) {
-            $this->setScopeData($ActionType->getActionElementOptions($options), $scope);
-        } else {
-            $this->setScopeData($item, $scope);
+        if (!empty($actionElement)) {
+            $this->setScopeData($actionElement, $scope);
         }
 
         return $this;
@@ -86,7 +85,7 @@ class ActionElementHelper extends Helper
     {
         $scope = $this->getScopeName($options['scope'] ?? null);
         foreach ($items as $item => $itemOptions) {
-            if ($itemOptions instanceof ActionElement) {
+            if ($itemOptions instanceof ActionElementInterface) {
                 $this->setItem($itemOptions, $options, $scope);
                 continue;
             }
@@ -97,9 +96,9 @@ class ActionElementHelper extends Helper
         return $this;
     }
 
-    protected function actionType(string $type, array $options = []): ActionElement
+    protected function actionType(string $type, array $options = []): ActionItem
     {
-        return ActionElement::tryFrom($type);
+        return ActionItem::tryFrom($type);
     }
 
     /**
@@ -119,7 +118,7 @@ class ActionElementHelper extends Helper
         $options = Hash::merge($this->options[$scope] ?? [], $options);
 
         $output = '';
-        foreach ($this->items[$scope] ?? [] as $item) {
+        foreach ($this->getScopeData($scope) ?? [] as $item) {
             if (is_string($item)) {
                 $output .= $item;
                 continue;
@@ -141,51 +140,49 @@ class ActionElementHelper extends Helper
         return $output;
     }
 
-    /**
-     * @param \App\View\Enum\ActionElement|array $item
-     * @param array $options
-     * @return string
-     */
-    public function renderItem(array|\BootstrapTools\View\Helper\ActionElementInterface $item, array $options = []): string
+    public function renderItem(ActionElement|ActionElementInterface|array $item, array $options = []): string
     {
-        if ($item instanceof ActionElementInterface) {
-            $item = $item->getActionElementOptions($options)->toArray();
+        if (is_array($item)) {
+            $item = new ActionElement($item, $options);
+        } elseif ($item instanceof ActionElementInterface) {
+            $item = $item->getActionElement($options);
         }
 
-        switch ($item['type']) {
-            case ActionElementOptions::TYPE_LINK:
-                $item = $this->formatOptions($item);
+        switch ($item->getType()) {
+            case ActionElement::TYPE_LINK:
+                $options = $this->formatOptions($item->getOptions());
 
-                return $this->Html->link($item['label'], $item['url'], $item['options']);
+                return $this->Html->link($options['label'], $options['url'], $options['options']);
 
-            case ActionElementOptions::TYPE_POSTLINK:
-                $item = $this->formatOptions($item);
+            case ActionElement::TYPE_POSTLINK:
+                $options = $this->formatOptions($item->getOptions());
 
-                return $this->Form->postLink($item['label'], $item['url'], $item['options']);
+                return $this->Form->postLink($options['label'], $options['url'], $options['options']);
 
-            case ActionElementOptions::TYPE_LIMIT_CONTROL:
-                return $this->Paginator->limitControl($item['limits'], $item[self::DEFAULT_SCOPE], $item['options']);
+            case ActionElement::TYPE_LIMIT_CONTROL:
+                $options = $item->getOptions();
+                return $this->Paginator->limitControl($options['limits'], null, $options['options']);
 
-            case ActionElementOptions::TYPE_SUBMIT:
-                $item = $this->formatOptions($item);
-                $item['options']['escapeTitle'] = false;
-                $item['options']['type'] = 'submit';
+            case ActionElement::TYPE_SUBMIT:
+                $options = $this->formatOptions($item->getOptions());
+                $options['options']['escapeTitle'] = false;
+                $options['options']['type'] = 'submit';
 
-                return $this->Form->button($item['label'], $item['options']);
+                return $this->Form->button($options['label'], $options['options']);
 
-            case ActionElementOptions::TYPE_BUTTON:
-                $item = $this->formatOptions($item);
-                $item['options']['escapeTitle'] = false;
-                $item['options']['type'] = 'button';
+            case ActionElement::TYPE_BUTTON:
+                $options = $this->formatOptions($item->getOptions());
+                $options['options']['escapeTitle'] = false;
+                $options['options']['type'] = 'button';
 
-                return $this->Form->button($item['label'], $item['options']);
+                return $this->Form->button($options['label'], $options['options']);
 
-            case ActionElementOptions::TYPE_RESET:
-                $item = $this->formatOptions($item);
-                $item['options']['escapeTitle'] = false;
-                $item['options']['type'] = 'reset';
+            case ActionElement::TYPE_RESET:
+                $options = $this->formatOptions($item->getOptions());
+                $options['options']['escapeTitle'] = false;
+                $options['options']['type'] = 'reset';
 
-                return $this->Form->button($item['label'], $item['options']);
+                return $this->Form->button($options['label'], $options['options']);
 
             default:
                 return '';

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace BootstrapTools\View\VisualElement;
 
 /**
- * VisualElementOptions class
+ * VisualElement class
  */
-class VisualElementOptions
+class VisualElement
 {
     private string $label;
     private string $icon;
@@ -32,20 +32,6 @@ class VisualElementOptions
         $this->icon = $icon;
         $this->color = $color;
         $this->description = $description;
-    }
-
-    public static function create(
-        string $label = '',
-        string $icon = '',
-        string $color = '',
-        string $description = ''
-    ): VisualElementOptions {
-        return new VisualElementOptions(
-            label: $label,
-            icon: $icon,
-            color: $color,
-            description: $description
-        );
     }
 
     /**

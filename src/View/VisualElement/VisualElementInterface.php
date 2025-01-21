@@ -5,5 +5,5 @@ namespace BootstrapTools\View\VisualElement;
 
 interface VisualElementInterface
 {
-    public function getVisualElementOptions(array $options = []): VisualElementOptions;
+    public function getVisualElement(array $options = []): VisualElement;
 }
