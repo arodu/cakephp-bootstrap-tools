@@ -29,11 +29,14 @@ class ActionItemsHelper extends Helper
      */
     protected array $_defaultConfig = [
         'defaultGroup' => false,
+        'actionItemClass' => ActionItem::class,
     ];
 
     protected array $options = [];
 
     protected array $helpers = ['Html', 'Paginator', 'Form'];
+
+    protected string $actionItemClass;
 
     /**
      * @param array $options
@@ -53,7 +56,7 @@ class ActionItemsHelper extends Helper
         $options = Hash::merge($this->options[$scope] ?? [], $options);
 
         $actionItem = match (true) {
-            is_string($item) => ActionItem::get($item, $options),
+            is_string($item) => $this->actionItemClass()::get($item, $options),
             $item instanceof ActionItemInterface => $item,
         };
 
@@ -65,7 +68,7 @@ class ActionItemsHelper extends Helper
 
     public function registry(string $name, array $options = []): self
     {
-        ActionItem::set($name, $options);
+        $this->actionItemClass()::set($name, $options);
 
         return $this;
     }
@@ -199,5 +202,18 @@ class ActionItemsHelper extends Helper
         }
 
         return compact('label', 'url', 'options');
+    }
+
+    protected function actionItemClass(): string
+    {
+        if (empty($this->actionItemClass)) {
+            $this->actionItemClass = $this->getConfig('actionItemClass') ?? ActionItem::class;
+
+            if (!class_exists($this->actionItemClass) || !is_subclass_of($this->actionItemClass, ActionItemInterface::class)) {
+                throw new \RuntimeException('Action item class not found, or does not implement ' . ActionItemInterface::class);
+            }
+        }
+
+        return $this->actionItemClass;
     }
 }

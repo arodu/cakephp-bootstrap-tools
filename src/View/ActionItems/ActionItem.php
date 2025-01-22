@@ -44,13 +44,13 @@ class ActionItem implements ActionItemInterface
     {
         $this->options = Hash::merge($this->options, $options);
 
-        // return new self(Hash::merge($this->options, $options)); // inmutable
+        // return new static(Hash::merge($this->options, $options)); // inmutable
         return $this;
     }
 
     public function mapOptions(array $options): array
     {
-        $map = self::getConfig('map') ?? [];
+        $map = static::getConfig('map') ?? [];
         foreach ($map as $key => $path) {
             if (isset($options[$key])) {
                 $options = Hash::insert($options, $path, $options[$key]);
@@ -63,7 +63,7 @@ class ActionItem implements ActionItemInterface
 
     public function toArray(): array
     {
-        return self::mapOptions($this->options);
+        return static::mapOptions($this->options);
     }
 
     /**
@@ -80,13 +80,13 @@ class ActionItem implements ActionItemInterface
      */
     public static function set(string $name, array $options): void
     {
-        $options = Hash::merge(self::$registry[$name] ?? self::defaultOptions($name), $options);
+        $options = Hash::merge(static::$registry[$name] ?? static::defaultOptions($name), $options);
 
         if (empty($options['type']) || !($options['type'] instanceof ActionType)) {
             throw new \InvalidArgumentException(sprintf('Argument "type" must be an instance of `%s`', ActionType::class));
         }
 
-        self::$registry[$name] = $options;
+        static::$registry[$name] = $options;
     }
 
     /**
@@ -101,34 +101,20 @@ class ActionItem implements ActionItemInterface
      * @param string $name
      * @return static
      */
-    public static function get(string $name): self
+    public static function get(string $name): static
     {
-        $options = self::$registry[$name] ?? self::defaultOptions($name);
-
+        $options = static::$registry[$name] ?? static::defaultOptions($name);
         if (!empty($options)) {
-            return new self($options);
+            return new static($options);
         }
 
-        throw new \InvalidArgumentException(sprintf('Action item "%s" in not registred, use `%s::set(string $name, array $options)` to registred ', $name, self::class));
-    }
-
-    public static function getAvailableKeys(): array
-    {
-        return array_merge([
-            self::Default,
-            self::Index,
-            self::Add,
-            self::Edit,
-            self::Delete,
-            self::View,
-            self::LimitControl,
-            self::Submit,
-            self::Cancel,
-            self::CloseModal,
-            self::AjaxSubmit,
-            self::Button,
-            self::Reset,
-        ], array_keys(self::$registry));
+        throw new \InvalidArgumentException(
+            sprintf(
+                'Action item "%s" in not registred, use `%s::set(string $name, array $options)` to registred',
+                $name,
+                static::class
+            )
+        );
     }
 
     /**
@@ -138,35 +124,35 @@ class ActionItem implements ActionItemInterface
     protected static function defaultOptions(string $key): array
     {
         return match ($key) {
-            self::Index => [
+            static::Index => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'index'],
                 'label' => __('List'),
                 'icon' => 'list',
                 'color' => 'light',
             ],
-            self::View => [
+            static::View => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'view'],
                 'label' => __('View'),
                 'icon' => 'eye',
                 'color' => 'info',
             ],
-            self::Add => [
+            static::Add => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'add'],
                 'label' => __('Add'),
                 'icon' => 'plus',
                 'color' => 'success',
             ],
-            self::Edit => [
+            static::Edit => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'edit'],
                 'label' => __('Edit'),
                 'icon' => 'pencil',
                 'color' => 'warning',
             ],
-            self::Delete => [
+            static::Delete => [
                 'type' => ActionType::PostLink,
                 'url' => ['action' => 'delete'],
                 'label' => __('Delete'),
@@ -174,13 +160,13 @@ class ActionItem implements ActionItemInterface
                 'color' => 'danger',
                 'confirm' => __('Are you sure you want to delete this item?'),
             ],
-            self::Cancel => [
+            static::Cancel => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'index'],
                 'label' => __('Cancel'),
                 'color' => 'secondary',
             ],
-            self::CloseModal => [
+            static::CloseModal => [
                 'type' => ActionType::Link,
                 'url' => '#',
                 'data-bs-dismiss' => 'modal',
@@ -188,10 +174,16 @@ class ActionItem implements ActionItemInterface
                 'label' => __('Close Modal'),
                 'color' => 'secondary',
             ],
-            self::LimitControl => [
+            static::LimitControl => [
                 'type' => ActionType::LimitControl,
+                'limits' => [],
+                'default' => null,
+                'options' => [
+                    'label' => false,
+                    'spacing' => 'mb-0',
+                ],
             ],
-            self::Submit => [
+            static::Submit => [
                 'type' => ActionType::Button,
                 'label' => __('Submit'),
                 'icon' => 'check',
@@ -202,7 +194,7 @@ class ActionItem implements ActionItemInterface
                     'escapeTitle' => false,
                 ],
             ],
-            self::Button => [
+            static::Button => [
                 'type' => ActionType::Button,
                 'label' => __('Button'),
                 'icon' => 'check',
@@ -212,7 +204,7 @@ class ActionItem implements ActionItemInterface
                     'escapeTitle' => false,
                 ],
             ],
-            self::Reset => [
+            static::Reset => [
                 'type' => ActionType::Button,
                 'label' => __('Reset'),
                 'icon' => 'check',
@@ -222,7 +214,7 @@ class ActionItem implements ActionItemInterface
                     'escapeTitle' => false,
                 ],
             ],
-            self::AjaxSubmit => [
+            static::AjaxSubmit => [
                 'type' => ActionType::Button,
                 'label' => __('Submit'),
                 'icon' => 'check',
