@@ -3,10 +3,10 @@ declare(strict_types=1);
 
 namespace BootstrapTools\View\ActionItems;
 
-enum ActionType: string
+enum ActionType
 {
-    case Link = 'link';
-    case PostLink = 'postLink';
-    case LimitControl = 'limitControl';
-    case Button = 'button';
+    case Link;
+    case PostLink;
+    case LimitControl;
+    case Button;
 }
