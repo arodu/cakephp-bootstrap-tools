@@ -9,8 +9,6 @@ use Cake\Utility\Hash;
 
 class ActionItem implements ActionItemInterface
 {
-    use StaticConfigTrait;
-
     const Default = 'default';
     const Index = 'index';
     const Add = 'add';
@@ -29,12 +27,6 @@ class ActionItem implements ActionItemInterface
 
     private array $options;
 
-    protected static array $_defaultConfig = [
-        'map' => [
-            'id' => 'url.[]',
-        ],
-    ];
-
     private function __construct(array $options = [])
     {
         $this->options = $options;
@@ -44,26 +36,12 @@ class ActionItem implements ActionItemInterface
     {
         $this->options = Hash::merge($this->options, $options);
 
-        // return new static(Hash::merge($this->options, $options)); // inmutable
         return $this;
-    }
-
-    public function mapOptions(array $options): array
-    {
-        $map = static::getConfig('map') ?? [];
-        foreach ($map as $key => $path) {
-            if (isset($options[$key])) {
-                $options = Hash::insert($options, $path, $options[$key]);
-                unset($options[$key]);
-            }
-        }
-
-        return $options;
     }
 
     public function toArray(): array
     {
-        return static::mapOptions($this->options);
+        return $this->options;
     }
 
     /**

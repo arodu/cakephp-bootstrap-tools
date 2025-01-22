@@ -53,14 +53,12 @@ class ActionItemsHelper extends Helper
     public function setItem(ActionItemInterface|string $item, array $options = []): self
     {
         $scope = $this->getScopeName($options['scope'] ?? null);
-        $options = Hash::merge($this->options[$scope] ?? [], $options);
-
         $actionItem = match (true) {
-            is_string($item) => $this->actionItemClass()::get($item, $options),
+            is_string($item) => $this->actionItemClass()::get($item),
             $item instanceof ActionItemInterface => $item,
         };
 
-        $actionItem = $actionItem->withOptions($options ?? []);
+        $actionItem = $actionItem->withOptions($options);
         $this->setScopeData($actionItem, $scope);
 
         return $this;
@@ -114,7 +112,7 @@ class ActionItemsHelper extends Helper
                 $output .= $item;
                 continue;
             }
-
+            $item = $item->withOptions($options);
             $output .= $this->renderItem($item, $options);
         }
 
@@ -131,9 +129,9 @@ class ActionItemsHelper extends Helper
         return $output;
     }
 
-    public function renderItem(ActionItemInterface $item, array $options = []): string
+    public function renderItem(ActionItemInterface $item): string
     {
-        $data = $item->withOptions($options)->toArray();
+        $data = $item->toArray();
         $type = $data['type'];
         unset($data['type']);
 
@@ -165,8 +163,6 @@ class ActionItemsHelper extends Helper
      */
     protected function formatOptions(array $item): array
     {
-        $item = Hash::merge($this->options[$this->getScopeName()] ?? [], $item);
-
         $label = $item['label'] ?? null;
         $url = $item['url'] ?? null;
 
