@@ -24,14 +24,14 @@ class ActionItem implements ActionItemInterface
     const AjaxSubmit = 'ajax_submit';
     const Button = 'button';
     const Reset = 'reset';
-    
+
     protected static array $registry = [];
 
     private array $options;
 
     protected static array $_defaultConfig = [
         'map' => [
-            'id' => 'url.:key',
+            'id' => 'url.[]',
         ],
     ];
 
@@ -50,11 +50,10 @@ class ActionItem implements ActionItemInterface
 
     public function mapOptions(array $options): array
     {
-        $map = self::getConfig('map');
-
-        foreach ($map as $key => $mappedKey) {
+        $map = self::getConfig('map') ?? [];
+        foreach ($map as $key => $path) {
             if (isset($options[$key])) {
-                $options = Hash::insert($options, $mappedKey, $options[$key]);
+                $options = Hash::insert($options, $path, $options[$key]);
                 unset($options[$key]);
             }
         }
@@ -66,7 +65,6 @@ class ActionItem implements ActionItemInterface
     {
         return self::mapOptions($this->options);
     }
-
 
     /**
      * Set an action item by name
@@ -85,7 +83,7 @@ class ActionItem implements ActionItemInterface
         $options = Hash::merge(self::$registry[$name] ?? self::defaultOptions($name), $options);
 
         if (empty($options['type']) || !($options['type'] instanceof ActionType)) {
-            throw new \InvalidArgumentException('Argument "type" must be an instance of \BootstrapTools\View\ActionItems\ActionType');
+            throw new \InvalidArgumentException(sprintf('Argument "type" must be an instance of `%s`', ActionType::class));
         }
 
         self::$registry[$name] = $options;
@@ -111,9 +109,32 @@ class ActionItem implements ActionItemInterface
             return new self($options);
         }
 
-        throw new \InvalidArgumentException(sprintf('Action item "%s" not found', $name));
+        throw new \InvalidArgumentException(sprintf('Action item "%s" in not registred, use `%s::set(string $name, array $options)` to registred ', $name, self::class));
     }
 
+    public static function getAvailableKeys(): array
+    {
+        return array_merge([
+            self::Default,
+            self::Index,
+            self::Add,
+            self::Edit,
+            self::Delete,
+            self::View,
+            self::LimitControl,
+            self::Submit,
+            self::Cancel,
+            self::CloseModal,
+            self::AjaxSubmit,
+            self::Button,
+            self::Reset,
+        ], array_keys(self::$registry));
+    }
+
+    /**
+     * @param string $key
+     * @return array
+     */
     protected static function defaultOptions(string $key): array
     {
         return match ($key) {
@@ -175,7 +196,7 @@ class ActionItem implements ActionItemInterface
                 'label' => __('Submit'),
                 'icon' => 'check',
                 'color' => 'primary',
-                'data-loader-onclik' => true,
+                'data-loader-onclick' => true,
                 'options' => [
                     'type' => 'submit',
                     'escapeTitle' => false,
@@ -207,8 +228,7 @@ class ActionItem implements ActionItemInterface
                 'icon' => 'check',
                 'color' => 'primary',
                 'data-ajax-submit' => true,
-                'data-loader-onclik' => true,
-                //'class' => ['ajax-submit'],
+                'data-loader-onclick' => true,
                 'options' => [
                     'type' => 'submit',
                     'escapeTitle' => false,
