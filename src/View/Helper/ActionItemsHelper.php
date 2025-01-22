@@ -13,6 +13,10 @@ use Cake\View\Helper;
 
 /**
  * Helper for rendering action groups.
+ * 
+ * @property \Cake\View\Helper\HtmlHelper $Html
+ * @property \Cake\View\Helper\PaginatorHelper $Paginator
+ * @property \Cake\View\Helper\FormHelper $Form
  */
 class ActionItemsHelper extends Helper
 {
@@ -190,7 +194,7 @@ class ActionItemsHelper extends Helper
         $options['class'] = implode(' ', $classes);
 
         if (!empty($item['icon'])) {
-            $label = $this->Html->icon($item['icon']) . ' ' . $label;
+            $label = $this->Html->tag('i', '', ['class' => 'me-2 bi bi-' . $item['icon']]) . $label;
             $options['escape'] = false;
         }
 
