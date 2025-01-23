@@ -26,7 +26,6 @@ class BootstrapToolsPlugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
-        // remove this method hook if you don't need it
     }
 
     /**
@@ -40,10 +39,9 @@ class BootstrapToolsPlugin extends BasePlugin
      */
     public function routes(RouteBuilder $routes): void
     {
-        // remove this method hook if you don't need it
         $routes->plugin(
             'BootstrapTools',
-            ['path' => '/bs-tools'],
+            ['path' => '/bootstrap-tools'],
             function (RouteBuilder $builder) {
                 // Add custom routes here
 
@@ -62,7 +60,6 @@ class BootstrapToolsPlugin extends BasePlugin
     public function middleware(MiddlewareQueue $middlewareQueue): MiddlewareQueue
     {
         // Add your middlewares here
-        // remove this method hook if you don't need it
 
         return $middlewareQueue;
     }
@@ -76,7 +73,6 @@ class BootstrapToolsPlugin extends BasePlugin
     public function console(CommandCollection $commands): CommandCollection
     {
         // Add your commands here
-        // remove this method hook if you don't need it
 
         $commands = parent::console($commands);
 
@@ -88,11 +84,10 @@ class BootstrapToolsPlugin extends BasePlugin
      *
      * @param \Cake\Core\ContainerInterface $container The Container to update.
      * @return void
-     * @link https://book.cakephp.org/5/en/development/dependency-injection.html#dependency-injection
+     * @link https://book.cakephp.org/4/en/development/dependency-injection.html#dependency-injection
      */
     public function services(ContainerInterface $container): void
     {
         // Add your services here
-        // remove this method hook if you don't need it
     }
 }
