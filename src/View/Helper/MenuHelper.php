@@ -125,7 +125,7 @@ class MenuHelper extends Helper
      */
     public function renderFile(string $file, array $options = []): string
     {
-        Configure::load($file, 'default');
+        Configure::load($file, 'default', false);
         $items = Configure::read($options['configKey'] ?? 'menu');
 
         return $this->render($items, $options);

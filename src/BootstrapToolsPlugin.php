@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace BootstrapTools;
 
+use Cake\Cache\Cache;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\ContainerInterface;
@@ -26,6 +27,13 @@ class BootstrapToolsPlugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
+        if (!Cache::getConfig('bootstrapToolsMenu')) {
+            Cache::setConfig('bootstrapToolsMenu', [
+                'className' => 'File',
+                'duration' => '+1 day',
+                'path' => CACHE . 'bootstrap_tools_menu/',
+            ]);
+        }
     }
 
     /**

@@ -12,14 +12,13 @@ namespace BootstrapTools\View\Helper;
 
 use Cake\Event\EventInterface;
 use Cake\View\Helper;
-use Cake\View\View;
 
 /**
- * BaseTheme helper
+ * BootstrapThemeHelper helper
  * 
  * @property \Cake\View\Helper\HtmlHelper $Html
  */
-class BaseThemeHelper extends Helper
+class BootstrapThemeHelper extends Helper
 {
     /**
      * Default configuration.
@@ -27,9 +26,9 @@ class BaseThemeHelper extends Helper
      * @var array<string, mixed>
      */
     protected $_defaultConfig = [
-        'options' => [
-            'appName' => 'BaseTheme Demo',
-            'appLogo' => 'BaseTheme./base-theme/images/logo.svg',
+        'settings' => [
+            'appName' => 'BootstrapTheme Demo',
+            'appLogo' => 'BootstrapTools./logo.png',
         ],
         'meta' => [],
         'css' => [],
@@ -46,13 +45,23 @@ class BaseThemeHelper extends Helper
     }
 
     /**
-     * Get a configuration value
-     *
+     * Get settings value
+     * 
      * @param string $key Configuration key
      * @return mixed
      */
-    public function get(string $key, string $config = 'options')
+    public function get(string $key, mixed $default = null): mixed
     {
-        return $this->getConfig($config . '.' . $key);
+        return $this->getConfig('settings.' . $key, $default);
+    }
+
+    /**
+     * @param string $key
+     * @param mixed $value
+     * @return void
+     */
+    public function set(string $key, mixed $value): void
+    {
+        $this->setConfig('settings.' . $key, $value);
     }
 }
