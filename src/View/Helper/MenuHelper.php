@@ -64,6 +64,7 @@ class MenuHelper extends Helper
             'menuItemLink' => '<a class="nav-link{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
             'menuItemLinkNest' => '<a class="nav-link dropdown-toggle{{linkClass}}{{activeClass}}" href="{{url}}" role="button" data-bs-toggle="dropdown" aria-expanded="false"{{attrs}}>{{icon}}{{text}}</a>',
             'menuItemDivider' => '<li><hr class="dropdown-divider"></li>',
+            'menuItemTitle' => '<li class="nav-header">{{icon}}{{text}}</li>',
 
             /**
              * Default templates for dropdown items.
@@ -74,12 +75,12 @@ class MenuHelper extends Helper
             'dropdownItemLink' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
             'dropdownItemLinkNest' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
             'dropdownItemDivider' => '<li><hr class="dropdown-divider"></li>',
+            'dropdownItemTitle' => '<li class="dropdown-header">{{text}}</li>',
 
             /**
              * Default templates for other items.
              */
             'icon' => '<i class="{{icon}}"></i>',
-            'menuTitle' => '<li class="nav-header">{{icon}}{{text}}</li>',
         ],
     ];
 
@@ -179,7 +180,8 @@ class MenuHelper extends Helper
         $item['type'] = $item['type'] ?? self::ITEM_TYPE_LINK;
 
         if ($item['type'] === self::ITEM_TYPE_TITLE) {
-            return $this->formatTemplate('menuTitle', [
+            $titleTemplate = $isChild ? 'dropdownItemTitle' : 'menuItemTitle';
+            return $this->formatTemplate($titleTemplate, [
                 'text' => $item['label'],
             ]);
         }
