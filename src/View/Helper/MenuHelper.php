@@ -231,6 +231,7 @@ class MenuHelper extends Helper
         if ($hasChildren) {
             $nest = $this->formatTemplate('dropdownContainer', [
                 'items' => $this->buildMenuItems($item['children'], $options, $level + 1),
+                'dropdownOpenClass' => $this->cssClass($isActiveItem ? $options['dropdownOpenClass'] : null),
             ]);
         }
 
