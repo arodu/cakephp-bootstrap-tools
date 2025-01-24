@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 /**
  * ArchitectUI CakePHP Plugin
@@ -11,6 +12,7 @@ declare(strict_types=1);
 namespace BootstrapTools\View\Helper;
 
 use Cake\Event\EventInterface;
+use Cake\Utility\Hash;
 use Cake\View\Helper;
 
 /**
@@ -30,19 +32,11 @@ class BootstrapThemeHelper extends Helper
             'appName' => 'BootstrapTheme Demo',
             'appLogo' => 'BootstrapTools./logo.png',
         ],
+        'autoRenderAssets' => false,
         'meta' => [],
         'css' => [],
         'scripts' => [],
     ];
-
-    public function beforeRender(EventInterface $event, $viewFile)
-    {
-        foreach ($this->getConfig('meta') ?? [] as $name => $content) {
-            $this->getView()->Html->meta($name, $content, ['block' => true]);
-        }
-        $this->getView()->Html->css($this->getConfig('css') ?? [], ['block' => true]);
-        $this->getView()->Html->script($this->getConfig('scripts') ?? [], ['block' => true]);
-    }
 
     /**
      * Get settings value
@@ -63,5 +57,31 @@ class BootstrapThemeHelper extends Helper
     public function set(string $key, mixed $value): void
     {
         $this->setConfig('settings.' . $key, $value);
+    }
+
+    /**
+     * @param array $options
+     * @return void
+     */
+    public function renderAssets(array $options = [])
+    {
+        $options = Hash::merge($this->getConfig(), $options);
+        foreach ($options['meta'] ?? [] as $name => $content) {
+            $this->getView()->Html->meta($name, $content, ['block' => true]);
+        }
+        $this->getView()->Html->css($options['css'] ?? [], ['block' => true]);
+        $this->getView()->Html->script($options['scripts'] ?? [], ['block' => true]);
+    }
+
+    /**
+     * @param EventInterface $event
+     * @param mixed $viewFile
+     * @return void
+     */
+    public function beforeRender(EventInterface $event, $viewFile)
+    {
+        if ($this->getConfig('autoRenderAssets') ?? false) {
+            $this->renderAssets();
+        }
     }
 }

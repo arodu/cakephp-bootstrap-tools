@@ -61,10 +61,11 @@ class MenuHelper extends Helper
             'menuContainer' => '<ul class="{{menuClass}}">{{items}}</ul>',
             'menuItem' => '<li class="nav-item{{class}}{{dropdownClass}}"{{attrs}}>{{text}}{{nest}}</li>',
             'menuItemDisabled' => '<li class="nav-item{{class}}"><a class="nav-link disabled" aria-disabled="true"{{attrs}}>{{icon}}{{text}}</a></li>',
-            'menuItemLink' => '<a class="nav-link{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
-            'menuItemLinkNest' => '<a class="nav-link dropdown-toggle{{linkClass}}{{activeClass}}" href="{{url}}" role="button" data-bs-toggle="dropdown" aria-expanded="false"{{attrs}}>{{icon}}{{text}}</a>',
+            'menuItemLink' => '<a class="nav-link{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}{{dropdownIcon}}</a>',
+            'menuItemLinkDropdown' => '<a class="nav-link dropdown-toggle{{linkClass}}{{activeClass}}" href="{{url}}" role="button" data-bs-toggle="dropdown" aria-expanded="false"{{attrs}}>{{icon}}{{text}}</a>',
             'menuItemDivider' => '<li><hr class="dropdown-divider"></li>',
             'menuItemTitle' => '<li class="nav-header">{{icon}}{{text}}</li>',
+            'dropdownIcon' => '',
 
             /**
              * Default templates for dropdown items.
@@ -73,7 +74,7 @@ class MenuHelper extends Helper
             'dropdownItem' => '<li{{attrs}}>{{text}}{{nest}}</li>',
             'dropdownItemDisabled' => '<li{{attrs}}>{{text}}{{nest}}</li>',
             'dropdownItemLink' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
-            'dropdownItemLinkNest' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
+            'dropdownItemLinkDropdown' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
             'dropdownItemDivider' => '<li><hr class="dropdown-divider"></li>',
             'dropdownItemTitle' => '<li class="dropdown-header">{{text}}</li>',
 
@@ -213,7 +214,7 @@ class MenuHelper extends Helper
             ?? $options['defaultIcon']['default']
             ?? null;
         $itemLink = $isChild ? 'dropdownItemLink' : 'menuItemLink';
-        $itemLinkNest = $isChild ? 'dropdownItemLinkNest' : 'menuItemLinkNest';
+        $itemLinkNest = $isChild ? 'dropdownItemLinkDropdown' : 'menuItemLinkDropdown';
         $itemLinkTemplate = $hasChildren ? $itemLinkNest : $itemLink;
         $link = $this->formatTemplate($itemLinkTemplate, [
             'url' => Router::url($item['url'] ?? '#'),
@@ -223,6 +224,7 @@ class MenuHelper extends Helper
             'linkClass' => $this->cssClass($item['link'] ?? null),
             'append' => $append,
             'attrs' => $this->templater()->formatAttributes($item ?? [], ['url', 'label', 'icon', 'append', 'container', 'children', 'key', 'type', 'show', 'active', 'disabled']),
+            'dropdownIcon' => $hasChildren ? $this->formatTemplate('dropdownIcon', []) : null,
         ]);
 
         $nest = null;
