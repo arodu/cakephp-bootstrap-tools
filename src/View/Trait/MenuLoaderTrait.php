@@ -13,8 +13,11 @@ use Cake\Utility\Hash;
 trait MenuLoaderTrait
 {
     protected array $menuTemplates = [
-        'Menu' => [],
+        'Menu' => [
+            'parentTemplate' => null,
+        ],
         'Dropdown' => [
+            'parentTemplate' => null,
             'menuClass' => 'dropdown-menu',
             'dropdownClass' => 'dropdown',
             'activeClass' => 'active',
@@ -38,11 +41,13 @@ trait MenuLoaderTrait
             ],
         ],
         'Navbar' => [
+            'parentTemplate' => null,
             'templates' => [
                 ''
             ]
         ],
         'Tabs' => [
+            'parentTemplate' => null,
             'menuClass' => 'nav nav-tabs',
             'dropdownClass' => 'dropdown',
             'activeClass' => 'active',
@@ -62,7 +67,7 @@ trait MenuLoaderTrait
             ],
         ],
         'Pills' => [
-            'parentTemplate' => 'Tabs',
+            'parentTemplate' => null,
             'menuClass' => 'nav nav-pills',
             'dropdownClass' => 'dropdown',
             'activeClass' => 'active',
@@ -94,13 +99,9 @@ trait MenuLoaderTrait
      */
     public function loadMenuHelper(string $key = 'Menu', array $options = []): void
     {
-        $options = Cache::remember('menuOptions_' . $key, function () use ($key, $options) {
-            $options['className'] ??= 'BootstrapTools.Menu';
-
-            return $this->buildMenuOptions($key, $options ?? []);
-        }, 'bootstrapToolsMenu');
-
-        $this->loadHelper($key, $options);
+        $options['className'] ??= 'BootstrapTools.Menu';
+        $menuOptions = $this->buildMenuOptions($key, $options ?? []);
+        $this->loadHelper($key, $menuOptions);
     }
 
     /**
@@ -114,7 +115,7 @@ trait MenuLoaderTrait
             $options = Hash::merge($this->menuTemplates[$key] ?? [], $options);
         }
 
-        if (isset($options['parentTemplate']) && isset($this->menuTemplates[$options['parentTemplate']])) {
+        if (!empty($options['parentTemplate']) && isset($this->menuTemplates[$options['parentTemplate']])) {
             $parentTemplate = $options['parentTemplate'];
             unset($options['parentTemplate']);
             $options = $this->buildMenuOptions($parentTemplate, $options);
