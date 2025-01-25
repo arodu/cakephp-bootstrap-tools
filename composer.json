@@ -1,5 +1,5 @@
 {
-    "name": "arodu/bootstrap-tools",
+    "name": "arodu/cakephp-bootstrap-tools",
     "description": "BootstrapTools plugin for CakePHP",
     "type": "cakephp-plugin",
     "license": "MIT",
