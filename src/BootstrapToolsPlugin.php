@@ -38,7 +38,7 @@ class BootstrapToolsPlugin extends BasePlugin
             ],
             'menu' => [
                 'default' => 'Menu',
-                'activeItem' => 'activeItem',
+                'key' => 'activeMenuItem',
             ],
         ], $config));
 

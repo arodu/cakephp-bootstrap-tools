@@ -35,6 +35,7 @@ class MenuHelper extends Helper
      * @var array<string, mixed>
      */
     protected $_defaultConfig = [
+        'name' => 'Menu',
         'menuClass' => 'nav nav-pills',
         'dropdownClass' => 'dropdown',
         'activeClass' => 'active',
@@ -89,6 +90,21 @@ class MenuHelper extends Helper
      * @var array Keys representing the active menu item hierarchy.
      */
     protected $activeKeys = [];
+
+    /**
+     * @inheritDoc
+     */
+    public function initialize(array $config): void
+    {
+        parent::initialize($config);
+        $bstConfig = Configure::read('BootstrapTools.menu');
+        $menu = $config['name'] ?? 'Menu';
+        $actives = $this->getView()->get($bstConfig['key'] ?? 'activeMenuItem', []);
+        
+        if (!empty($actives[$menu])) {
+            $this->activeItem($actives[$menu]);
+        }
+    }
 
     /**
      * Renders a menu based on the provided items and options.

@@ -14,9 +14,11 @@ trait MenuLoaderTrait
 {
     protected array $menuTemplates = [
         'Menu' => [
+            'name' => 'Menu',
             'parentTemplate' => null,
         ],
         'Dropdown' => [
+            'name' => 'Dropdown',
             'parentTemplate' => null,
             'menuClass' => 'dropdown-menu',
             'dropdownClass' => 'dropdown',
@@ -41,12 +43,14 @@ trait MenuLoaderTrait
             ],
         ],
         'Navbar' => [
+            'name' => 'Navbar',
             'parentTemplate' => null,
             'templates' => [
                 ''
             ]
         ],
         'Tabs' => [
+            'name' => 'Tabs',
             'parentTemplate' => null,
             'menuClass' => 'nav nav-tabs',
             'dropdownClass' => 'dropdown',
@@ -67,6 +71,7 @@ trait MenuLoaderTrait
             ],
         ],
         'Pills' => [
+            'name' => 'Pills',
             'parentTemplate' => null,
             'menuClass' => 'nav nav-pills',
             'dropdownClass' => 'dropdown',
@@ -100,6 +105,7 @@ trait MenuLoaderTrait
     public function loadMenuHelper(string $key = 'Menu', array $options = []): void
     {
         $options['className'] ??= 'BootstrapTools.Menu';
+        $options['name'] ??= $key;
         $menuOptions = $this->buildMenuOptions($key, $options ?? []);
         $this->loadHelper($key, $menuOptions);
     }
