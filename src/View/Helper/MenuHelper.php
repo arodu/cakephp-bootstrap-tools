@@ -36,7 +36,7 @@ class MenuHelper extends Helper
      */
     protected $_defaultConfig = [
         'name' => 'Menu',
-        'menuClass' => 'nav nav-pills',
+        'menuClass' => 'nav',
         'dropdownClass' => 'dropdown',
         'activeClass' => 'active',
         'dropdownOpenClass' => 'dropdown-open',
@@ -52,6 +52,8 @@ class MenuHelper extends Helper
          */
         'defaultIcon' => null,
 
+        'maxLevel' => 2,
+
         /**
          * Class for nested items.
          */
@@ -60,21 +62,21 @@ class MenuHelper extends Helper
              * Default templates for menu items.
              */
             'menuContainer' => '<ul class="{{menuClass}}">{{items}}</ul>',
-            'menuItem' => '<li class="nav-item{{class}}{{dropdownClass}}"{{attrs}}>{{text}}{{nest}}</li>',
+            'menuItem' => '<li class="nav-item{{class}}{{dropdownClass}}"{{attrs}}>{{text}}{{children}}</li>',
+            'menuItemLink' => '<a class="nav-link{{linkClass}}{{activeClass}}" aria-current="page" href="{{url}}"{{attrs}}>{{icon}}{{text}}{{append}}{{dropdownIcon}}</a>',
             'menuItemDisabled' => '<li class="nav-item{{class}}"><a class="nav-link disabled" aria-disabled="true"{{attrs}}>{{icon}}{{text}}</a></li>',
-            'menuItemLink' => '<a class="nav-link{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}{{dropdownIcon}}</a>',
             'menuItemLinkDropdown' => '<a class="nav-link dropdown-toggle{{linkClass}}{{activeClass}}" href="{{url}}" role="button" data-bs-toggle="dropdown" aria-expanded="false"{{attrs}}>{{icon}}{{text}}</a>',
-            'menuItemDivider' => '<li><hr class="dropdown-divider"></li>',
-            'menuItemTitle' => '<li class="nav-header">{{icon}}{{text}}</li>',
-            'dropdownIcon' => '',
+            'menuItemDivider' => '', // '<li><hr class="dropdown-divider"></li>',
+            'menuItemTitle' => '', // '<li class="nav-header">{{icon}}{{text}}</li>',
+            'dropdownIcon' => '', // '<i class="bi bi-chevron-right"></i>',
 
             /**
              * Default templates for dropdown items.
              */
             'dropdownContainer' => '<ul class="dropdown-menu">{{items}}</ul>',
-            'dropdownItem' => '<li{{attrs}}>{{text}}{{nest}}</li>',
-            'dropdownItemDisabled' => '<li{{attrs}}>{{text}}{{nest}}</li>',
+            'dropdownItem' => '<li{{attrs}}>{{text}}{{children}}</li>',
             'dropdownItemLink' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
+            'dropdownItemDisabled' => '<li{{attrs}}><a class="dropdown-item disabled">{{icon}}{{text}}</a></li>',
             'dropdownItemLinkDropdown' => '<a class="dropdown-item{{linkClass}}{{activeClass}}" href="{{url}}"{{attrs}}>{{icon}}{{text}}</a>',
             'dropdownItemDivider' => '<li><hr class="dropdown-divider"></li>',
             'dropdownItemTitle' => '<li class="dropdown-header">{{text}}</li>',
@@ -82,7 +84,7 @@ class MenuHelper extends Helper
             /**
              * Default templates for other items.
              */
-            'icon' => '<i class="{{icon}}"></i>',
+            'icon' => '<i class="{{icon}} me-1"></i>',
         ],
     ];
 
@@ -100,7 +102,7 @@ class MenuHelper extends Helper
         $bstConfig = Configure::read('BootstrapTools.menu');
         $menu = $config['name'] ?? 'Menu';
         $actives = $this->getView()->get($bstConfig['key'] ?? 'activeMenuItem', []);
-        
+
         if (!empty($actives[$menu])) {
             $this->activeItem($actives[$menu]);
         }
@@ -192,43 +194,71 @@ class MenuHelper extends Helper
      */
     protected function buildMenuItem(array $item, array $options, int $level): string
     {
-        $hasChildren = !empty($item['children']);
-        $isChild = $level > 0;
         $item['type'] = $item['type'] ?? self::ITEM_TYPE_LINK;
 
-        if ($item['type'] === self::ITEM_TYPE_TITLE) {
-            $titleTemplate = $isChild ? 'dropdownItemTitle' : 'menuItemTitle';
-            return $this->formatTemplate($titleTemplate, [
-                'text' => $item['label'],
-            ]);
+        if ($this->isType($item, self::ITEM_TYPE_TITLE)) {
+            return $this->renderTitle($item, $level);
         }
 
-        if ($item['type'] === self::ITEM_TYPE_DIVIDER) {
-            $dividerTemplate = $isChild ? 'dropdownItemDivider' : 'menuItemDivider';
-            return $this->formatTemplate($dividerTemplate, []);
+        if ($this->isType($item, self::ITEM_TYPE_DIVIDER)) {
+            return $this->renderDivider($level);
         }
 
         if ($this->itemDisabled($item)) {
-            $itemDisabledTemplate = $isChild ? 'dropdownItemDisabled' : 'menuItemDisabled';
-            return $this->formatTemplate($itemDisabledTemplate, [
-                'text' => $item['label'] ?? null,
-                'class' => $this->cssClass($item['container']['class'] ?? null),
-                'icon' => !empty($item['icon']) ? $this->formatTemplate('icon', ['icon' => $item['icon']]) : null,
-                'attrs' => $this->templater()->formatAttributes($item['container'] ?? [], ['url', 'label', 'icon', 'append', 'children']),
-            ]);
+            return $this->renderDisabledItem($item, $options, $level);
         }
+
+        return $this->renderMenuItem($item, $options, $level);
+    }
+
+    protected function isType(array $item, string $type): bool
+    {
+        return ($item['type'] ?? null) === $type;
+    }
+
+    protected function renderTitle(array $item, int $level): string
+    {
+        $isChild = $level > 0;
+        $template = $isChild ? 'dropdownItemTitle' : 'menuItemTitle';
+        return $this->formatTemplate($template, [
+            'text' => $item['label'],
+        ]);
+    }
+
+    protected function renderDivider(int $level): string
+    {
+        $isChild = $level > 0;
+        $template = $isChild ? 'dropdownItemDivider' : 'menuItemDivider';
+        return $this->formatTemplate($template, []);
+    }
+
+    protected function renderDisabledItem(array $item, array $options, int $level): string
+    {
+        $isChild = $level > 0;
+        $template = $isChild ? 'dropdownItemDisabled' : 'menuItemDisabled';
+        $item['icon'] = $this->resolveIcon($item, $options, $level);
+        return $this->formatTemplate($template, [
+            'text' => $item['label'] ?? null,
+            'class' => $this->cssClass($item['container']['class'] ?? null),
+            'icon' => !empty($item['icon']) ? $this->formatTemplate('icon', ['icon' => $item['icon']]) : null,
+            'attrs' => $this->templater()->formatAttributes($item['container'] ?? [], ['url', 'label', 'icon']),
+        ]);
+    }
+
+    protected function renderMenuItem(array $item, array $options, int $level): string
+    {
+        $hasChildren = !empty($item['children']);
+        $isChild = $level > 0;
+        $isActiveItem = $this->isActiveItem($item, $level);
 
         $append = $item['append'] ?? null;
         if (!empty($append) && is_callable($append)) {
-            $append = $append($item);
+            $append = $append($item, $this->getView()->getRequest());
         }
 
         $isActiveItem = $this->isActiveItem($item, $level);
-        $item['icon'] = $item['icon']
-            ?? (is_string($options['defaultIcon']) ? $options['defaultIcon'] : null)
-            ?? $options['defaultIcon'][$level]
-            ?? $options['defaultIcon']['default']
-            ?? null;
+        $item['icon'] = $this->resolveIcon($item, $options, $level);
+
         $itemLink = $isChild ? 'dropdownItemLink' : 'menuItemLink';
         $itemLinkNest = $isChild ? 'dropdownItemLinkDropdown' : 'menuItemLinkDropdown';
         $itemLinkTemplate = $hasChildren ? $itemLinkNest : $itemLink;
@@ -243,13 +273,12 @@ class MenuHelper extends Helper
             'dropdownIcon' => $hasChildren ? $this->formatTemplate('dropdownIcon', []) : null,
         ]);
 
-        $nest = null;
-        if ($hasChildren) {
-            $nest = $this->formatTemplate('dropdownContainer', [
+        $children = $hasChildren
+            ? $this->formatTemplate('dropdownContainer', [
                 'items' => $this->buildMenuItems($item['children'], $options, $level + 1),
                 'dropdownOpenClass' => $this->cssClass($isActiveItem ? $options['dropdownOpenClass'] : null),
-            ]);
-        }
+            ])
+            : null;
 
         $containerTemplate = $isChild ? 'dropdownItem' : 'menuItem';
 
@@ -259,9 +288,18 @@ class MenuHelper extends Helper
             'dropdownClass' => $this->cssClass(!empty($item['children']) ? $options['dropdownClass'] : null),
             'dropdownOpenClass' => $this->cssClass($isActiveItem ? $options['dropdownOpenClass'] : null),
             'text' => $link,
-            'nest' => $nest ?? null,
+            'children' => $children ?? null,
             'attrs' => $this->templater()->formatAttributes($item['container'] ?? [], ['url', 'label', 'icon', 'append', 'children']),
         ]);
+    }
+
+    protected function resolveIcon(array $item, array $options, int $level): ?string
+    {
+        return $item['icon']
+            ?? $options['defaultIcon'][$level]
+            ?? $options['defaultIcon']['default']
+            ?? $options['defaultIcon']
+            ?? null;
     }
 
     /**
@@ -276,7 +314,7 @@ class MenuHelper extends Helper
             return false;
         }
 
-        if (isset($item['show']) && is_callable($item['show']) && !$item['show']()) {
+        if (isset($item['show']) && is_callable($item['show']) && !$item['show']($item, $this->getView()->getRequest())) {
             return false;
         }
 
@@ -295,7 +333,7 @@ class MenuHelper extends Helper
             return true;
         }
 
-        if (isset($item['disabled']) && is_callable($item['disabled']) && $item['disabled']($this->getView()->getRequest())) {
+        if (isset($item['disabled']) && is_callable($item['disabled']) && $item['disabled']($item, $this->getView()->getRequest())) {
             return true;
         }
 
@@ -315,7 +353,7 @@ class MenuHelper extends Helper
             return true;
         }
 
-        if (isset($item['active']) && is_callable($item['active']) && $item['active']($this->getView()->getRequest())) {
+        if (isset($item['active']) && is_callable($item['active']) && $item['active']($item, $this->getView()->getRequest())) {
             return true;
         }
 
