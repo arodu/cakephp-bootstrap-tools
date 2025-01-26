@@ -3,13 +3,16 @@ declare(strict_types=1);
 
 namespace BootstrapTools;
 
-use Cake\Cache\Cache;
+use BootstrapTools\Listener\ControllerRedirectListener;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
+use Cake\Core\Configure;
 use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
+use Cake\Event\EventManager;
 use Cake\Http\MiddlewareQueue;
 use Cake\Routing\RouteBuilder;
+use Cake\Utility\Hash;
 
 /**
  * Plugin for BootstrapTools
@@ -27,7 +30,19 @@ class BootstrapToolsPlugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
-        // remove this method hook if you don't need it
+        $config = Configure::read('BootstrapTools');
+        Configure::write('BootstrapTools', Hash::merge([
+            'redirect' => [
+                'enable' => true,
+                'key' => 'redirect',
+            ],
+            'menu' => [
+                'default' => 'Menu',
+                'activeItem' => 'activeItem',
+            ],
+        ], $config));
+
+        $app->getEventManager()->on(new ControllerRedirectListener());
     }
 
     /**
