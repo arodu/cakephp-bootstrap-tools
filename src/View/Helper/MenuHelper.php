@@ -211,11 +211,25 @@ class MenuHelper extends Helper
         return $this->renderMenuItem($item, $options, $level);
     }
 
+    /**
+     * Checks if a menu item is of a specific type.
+     *
+     * @param array $item The menu item configuration.
+     * @param string $type The type to check against.
+     * @return bool True if the item is of the specified type, false otherwise.
+     */
     protected function isType(array $item, string $type): bool
     {
         return ($item['type'] ?? null) === $type;
     }
 
+    /**
+     * Renders a menu item title.
+     *
+     * @param array $item The menu item configuration.
+     * @param int $level The current menu depth level.
+     * @return string The rendered title HTML.
+     */
     protected function renderTitle(array $item, int $level): string
     {
         $isChild = $level > 0;
@@ -225,6 +239,12 @@ class MenuHelper extends Helper
         ]);
     }
 
+    /**
+     * Renders a menu item divider.
+     *
+     * @param int $level The current menu depth level.
+     * @return string The rendered divider HTML.
+     */
     protected function renderDivider(int $level): string
     {
         $isChild = $level > 0;
@@ -232,6 +252,14 @@ class MenuHelper extends Helper
         return $this->formatTemplate($template, []);
     }
 
+    /**
+     * Renders a disabled menu item.
+     *
+     * @param array $item The menu item configuration.
+     * @param array $options Configuration options for rendering.
+     * @param int $level The current menu depth level.
+     * @return string The rendered disabled item HTML.
+     */
     protected function renderDisabledItem(array $item, array $options, int $level): string
     {
         $isChild = $level > 0;
@@ -245,6 +273,14 @@ class MenuHelper extends Helper
         ]);
     }
 
+    /**
+     * Renders a menu item.
+     *
+     * @param array $item The menu item configuration.
+     * @param array $options Configuration options for rendering.
+     * @param int $level The current menu depth level.
+     * @return string The rendered item HTML.
+     */
     protected function renderMenuItem(array $item, array $options, int $level): string
     {
         $hasChildren = !empty($item['children']);
@@ -293,12 +329,20 @@ class MenuHelper extends Helper
         ]);
     }
 
+    /**
+     * Resolves the icon for a menu item based on its configuration.
+     *
+     * @param array $item The menu item configuration.
+     * @param array $options Configuration options for rendering.
+     * @param int $level The current menu depth level.
+     * @return string|null The resolved icon class, or null if none is found.
+     */
     protected function resolveIcon(array $item, array $options, int $level): ?string
     {
         return $item['icon']
+            ?? (is_string($options['defaultIcon']) ? $options['defaultIcon'] : null)
             ?? $options['defaultIcon'][$level]
             ?? $options['defaultIcon']['default']
-            ?? $options['defaultIcon']
             ?? null;
     }
 
