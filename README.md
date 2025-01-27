@@ -9,3 +9,6 @@ The recommended way to install composer packages is:
 ```
 composer require arodu/cakephp-bootstrap-tools
 ```
+
+----
+© [arodu](https://github.com/arodu) 2025
