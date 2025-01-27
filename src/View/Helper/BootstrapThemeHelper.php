@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 /**
- * ArchitectUI CakePHP Plugin
+ * BootstrapTools CakePHP Plugin
  * 
  * @copyright 2025 Alberto Rodriguez
  * @author Alberto Rodriguez <arodu.dev@gmail.com>
