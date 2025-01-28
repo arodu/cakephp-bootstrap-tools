@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 namespace BootstrapTools;
 
+use BootstrapTools\Listener\ControllerRedirectListener;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
+use Cake\Core\Configure;
 use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Http\MiddlewareQueue;
 use Cake\Routing\RouteBuilder;
+use Cake\Utility\Hash;
 
 /**
  * Plugin for BootstrapTools
@@ -26,7 +29,19 @@ class BootstrapToolsPlugin extends BasePlugin
      */
     public function bootstrap(PluginApplicationInterface $app): void
     {
-        // remove this method hook if you don't need it
+        $config = Configure::read('BootstrapTools');
+        Configure::write('BootstrapTools', Hash::merge([
+            'redirect' => [
+                'enable' => true,
+                'key' => 'redirect',
+            ],
+            'menu' => [
+                'default' => 'Menu',
+                'key' => 'activeMenuItem',
+            ],
+        ], $config));
+
+        $app->getEventManager()->on(new ControllerRedirectListener());
     }
 
     /**
@@ -43,7 +58,7 @@ class BootstrapToolsPlugin extends BasePlugin
         // remove this method hook if you don't need it
         $routes->plugin(
             'BootstrapTools',
-            ['path' => '/bs-tools'],
+            ['path' => '/bootstrap-tools'],
             function (RouteBuilder $builder) {
                 // Add custom routes here
 
