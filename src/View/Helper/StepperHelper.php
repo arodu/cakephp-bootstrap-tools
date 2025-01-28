@@ -1,49 +1,46 @@
 <?php
+
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
 
-use Cake\Event\EventInterface;
 use Cake\Routing\Router;
 use Cake\View\Helper;
 use Cake\View\StringTemplateTrait;
 
 /**
  * @method self addStep(string $label, array $options = [])
- * @method self setTheme(string $theme)
  * @method self enableResponsive(bool $enable)
  */
 class StepperHelper extends Helper
 {
     use StringTemplateTrait;
 
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_DISABLED = 'disabled';
+    public const STATUS_CURRENT = 'current';
+
     protected array $steps = [];
-    protected array $callbacks = [];
     protected int $currentStep = 0;
 
     protected array $_defaultConfig = [
         'cssFile' => 'BootstrapTools.stepper',
-        'style' => 'circle',
+        'containerClass' => 'stepper-circle',
         'size' => 'md',
         'responsive' => true,
         'max_visible_steps' => 5,
         'escape' => true,
-        'icons' => [
-            'completed' => '✓',
-            'active' => '',
-            'disabled' => '✗'
-        ],
         'templates' => [
             'container' => '<div class="stepper {{class}}" data-stepper>{{content}}</div>',
             'step' => '<div class="step {{status}}" data-step="{{index}}" {{attrs}}>{{link}}</div>',
             'link' => '<a href="{{url}}" {{attrs}}>{{indicator}}{{label}}</a>',
             'indicator' => '<div class="indicator" data-number="{{number}}">{{content}}</div>',
             'label' => '<div class="label">{{text}}</div>',
+            'icon' => '<i class="{{icon}}"></i>'
         ],
-        'theme' => [
-            'circle' => 'circle-stepper',
-            'modern' => 'modern-stepper'
-        ],
+
+        'defaultStatus' => self::STATUS_DISABLED,
     ];
 
     public function initialize(array $config): void
@@ -52,23 +49,35 @@ class StepperHelper extends Helper
         $this->setSize($this->getConfig('size'));
     }
 
-    public function addItem(string $label, array $options = []): self
+    public function addItem(array $options = []): self
     {
-        $this->steps[] = $this->parseStep($label, $options);
+        if (empty($options['label'])) {
+            throw new \InvalidArgumentException('You must provide a label and a URL for each step');
+        }
+
+        $this->steps[] = [
+            'label' => $options['label'] ?? '',
+            'url' => $options['url'] ?? '#',
+            'status' => $options['status'] ?? $this->getConfig('defaultStatus') ?? self::STATUS_ACTIVE,
+            'icon' => $options['icon'] ?? null,
+            'data' => $options['data'] ?? [],
+        ];
+
         return $this;
     }
 
     public function addItems(array $items): self
     {
         foreach ($items as $item) {
-            $this->addItem($item['label'], $item);
+            $this->addItem($item);
         }
+
         return $this;
     }
 
     public function setCurrentStep(int $step): self
     {
-        $this->currentStep = max(0, min($step, count($this->steps) - 1)); 
+        $this->currentStep = max(0, min($step, count($this->steps) - 1));
         return $this;
     }
 
@@ -91,20 +100,13 @@ class StepperHelper extends Helper
         return $this;
     }
 
-    public function addStepCallback(int $step, callable $callback): self
-    {
-        $this->callbacks[$step] = $callback;
-        return $this;
-    }
-
     public function render(): string
     {
         $stepsContent = [];
-        $totalSteps = count($this->steps);
         $visibleSteps = array_slice($this->steps, 0, $this->getConfig('max_visible_steps'));
 
         foreach ($visibleSteps as $index => $step) {
-            $stepsContent[] = $this->renderStep($index, $step, $totalSteps);
+            $stepsContent[] = $this->renderStep($index, $step);
         }
 
         return $this->templater()->format('container', [
@@ -113,13 +115,14 @@ class StepperHelper extends Helper
         ]);
     }
 
-    protected function renderStep(int $index, array $step, int $totalSteps): string
+    protected function renderStep(int $index, array $step): string
     {
         $stepNumber = $index + 1;
-        $isActive = $stepNumber === $this->currentStep;
-        $status = $this->validateStatus($step['status']);
+        $isCurrent = $stepNumber === $this->currentStep;
+        $status = $step['status'] ?? $this->getConfig('defaultStatus') ?? self::STATUS_DISABLED;
+        $status .= ($isCurrent ? ' ' . self::STATUS_CURRENT : '');
 
-        $indicatorContent = $this->getIndicatorContent($status, $stepNumber);
+        $indicatorContent = $this->getIndicatorContent($step, $status, $stepNumber);
 
         $indicator = $this->templater()->format('indicator', [
             'number' => $stepNumber,
@@ -135,7 +138,7 @@ class StepperHelper extends Helper
             'indicator' => $indicator,
             'label' => $label,
             'attrs' => $this->templater()->formatAttributes([
-                'aria-current' => $isActive ? 'step' : 'false',
+                'aria-current' => $isCurrent ? 'step' : 'false',
                 'role' => 'navigation'
             ])
         ]);
@@ -148,37 +151,10 @@ class StepperHelper extends Helper
         ]);
     }
 
-    protected function parseStep(string $label, array $options): array
-    {
-        return [
-            'label' => $label,
-            'url' => $options['url'] ?? '#',
-            'status' => $this->validateStatus($options['status'] ?? 'disabled'),
-            'data' => $options['data'] ?? []
-        ];
-    }
-
-    protected function validateStatus(string $status): string
-    {
-        $statusMap = [
-            'active' => ['current', 'active', 'activo'],
-            'completed' => ['done', 'complete', 'completado'],
-            'disabled' => ['disabled', 'inactive', 'inactivo']
-        ];
-
-        foreach ($statusMap as $validStatus => $aliases) {
-            if (in_array(strtolower($status), array_map('strtolower', $aliases))) {
-                return $validStatus;
-            }
-        }
-
-        return 'disabled';
-    }
-
     protected function buildStepperClasses(): string
     {
         $classes = [
-            $this->getConfig("theme.{$this->getConfig('style')}"),
+            $this->getConfig('containerClass'),
             "size-{$this->getConfig('size')}",
             $this->getConfig('responsive') ? 'responsive' : ''
         ];
@@ -186,13 +162,13 @@ class StepperHelper extends Helper
         return implode(' ', array_filter($classes));
     }
 
-    protected function getIndicatorContent(string $status, int $stepNumber): string
+    protected function getIndicatorContent(array $step, string $status, int $stepNumber): string
     {
-        $icon = $this->getConfig("icons.{$status}");
+        //$icon = $this->getConfig("icons.{$status}");
 
         return match (true) {
-            !empty($icon) => $icon,
-            $status === 'completed' => $this->getConfig('icons.completed'),
+                //!empty($icon) => $icon,
+                //$status === 'completed' => $this->getConfig('icons.completed'),
             default => (string)$stepNumber
         };
     }
@@ -215,7 +191,6 @@ class StepperHelper extends Helper
     public function reset(): self
     {
         $this->steps = [];
-        $this->callbacks = [];
         $this->currentStep = 0;
         return $this;
     }
