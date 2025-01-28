@@ -6,30 +6,40 @@ namespace BootstrapTools\View\Helper;
 use BootstrapTools\View\VisualElement\VisualElementInterface;
 use BootstrapTools\View\VisualElement\VisualElement;
 use Cake\View\Helper;
+use Cake\View\StringTemplateTrait;
 
 /**
  * App helper
  */
 class BsHelper extends Helper
 {
+    use StringTemplateTrait;
+
     /**
      * Default configuration.
      *
      * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
-        'defaultColor' => 'secondary',
-        'defaultTooltipPlacement' => 'top',
-        'defaultTooltip' => false,
-        'defaultIcon' => false,
-        'defaultIcon' => 'circle-fill',
-        'defaultPill' => false,
-    ];
+        //'label' => true,
+        //'icon' => false,
+        //'color' => 'secondary',
+        //'tooltip' => false,
 
-    /**
-     * @var array
-     */
-    protected array $helpers = ['Html'];
+        'bagde' => [
+            'color' => 'secondary',
+            'pill' => false,
+            'tooltip' => false,
+        ],
+
+        'templates' => [
+            'badge' => '<span class="{{class}}" aria-label="{{aria-label}}"{{attrs}}>{{icon}}{{label}}</span>',
+            'button' => '<a href="{{url}}" class="{{class}}"{{attrs}}>{{icon}}{{label}}</a>',
+            'text' => '<span class="{{class}}"{{attrs}}>{{icon}}{{label}}</span>',
+            'alert' => '<div class="{{class}}" role="alert"{{attrs}}>{{closeButton}}<h4 class="alert-heading">{{icon}}{{label}}</h4><p class="mb-0">{{content}}</p></div>',
+            'icon' => '<i class="{{class}}"{{attrs}}></i>',
+        ],
+    ];
 
     /**
      * @param VisualElement|array $options
@@ -66,23 +76,31 @@ class BsHelper extends Helper
     public function badge(VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
-        $options += ['class' => 'badge'];
-        $options['class'] .= ' text-bg-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary');
-        $options['title'] = $visualElement->getDescription() ?? $visualElement->getLabel() ?? null;
-        $options['aria-label'] = $visualElement->getLabel() ?? '';
 
-        if ($options['pill'] ?? $this->getConfig('defaultPill') ?? false) {
-            $options['class'] .= ' rounded-pill';
-        }
+        $class = 'badge text-bg-' . ($visualElement->getColor() ?? $this->getConfig('bagde.color') ?? 'secondary');
+        $class .= ($options['pill'] ?? $this->getConfig('bagde.pill') ?? false) ? ' rounded-pill' : '';
+        $class .= ' ' . ($options['class'] ?? '');
 
-        if ($options['tooltip'] ?? $this->getConfig('defaultTooltip') ?? false) {
+        $options += [
+            'class' => $class,
+            'title' => $visualElement->getDescription() ?? $visualElement->getLabel() ?? null,
+            'aria-label' => $visualElement->getLabel() ?? '',
+        ];
+
+        if ($options['tooltip'] ?? $this->getConfig('bagde.tooltip') ?? false) {
             $options = $this->tooltipOptions($visualElement, $options);
             unset($options['tooltip']);
         }
 
         $icon = $this->renderIcon($visualElement, $options);
 
-        return $this->Html->tag('span', $icon . $visualElement->getLabel(), $options);
+        return $this->formatTemplate('badge', [
+            'class' => $options['class'],
+            'aria-label' => $options['aria-label'],
+            'icon' => $icon,
+            'label' => $visualElement->getLabel(),
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
+        ]);
     }
 
     /**
@@ -148,8 +166,8 @@ class BsHelper extends Helper
             return '';
         }
 
-        $options += ['class' => 'bi'];
-        $options['class'] .= ' bi-' . $visualElement->getIcon();
+        $options += ['class' => ''];
+        $options['class'] .= ' bi bi-' . $visualElement->getIcon();
         $options['class'] .= ' text-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary');
         $options['title'] = $visualElement->getDescription() ?? $visualElement->getLabel() ?? '';
 

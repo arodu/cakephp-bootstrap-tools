@@ -26,6 +26,7 @@ $this->Stepper
         [
             'label' => __('Step 4'),
             'url' => ['action' => 'stepper', 4],
+            'status' => 'disabled',
         ],
     ]);
 ?>
@@ -34,4 +35,19 @@ $this->Stepper
     <?= $this->Stepper
         ->setCurrentStep($index)
         ->render() ?>
+</div>
+
+
+<?php
+$total = 4;
+?>
+
+<div class="row">
+    <div class="col">
+        <div class="progress bg-light" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="height: 3em;">
+            <div class="progress-bar" style="width: <?= ($index / $total) * 100 ?>%;">
+                <?= __('Step {0} of {1}', $index, 4) ?>
+            </div>
+        </div>
+    </div>
 </div>
