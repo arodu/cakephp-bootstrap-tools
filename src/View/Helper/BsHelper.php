@@ -176,7 +176,11 @@ class BsHelper extends Helper
             unset($options['tooltip']);
         }
 
-        return $this->Html->tag('i', '', $options);
+        return $this->formatTemplate('icon', [
+            'class' => $options['class'],
+            'aria-label' => $options['title'],
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label']),
+        ]);
     }
 
     public function button(VisualElementInterface|array $visualElement, array $options = []): string
@@ -194,7 +198,14 @@ class BsHelper extends Helper
         $icon = $this->renderIcon($visualElement, $options);
         $label = $visualElement->getLabel();
 
-        return $this->Html->link($icon . $label, $options['url'] ?? '#', $options);
+        return $this->formatTemplate('button', [
+            'url' => $options['url'] ?? '#',
+            'class' => $options['class'],
+            'aria-label' => $options['title'],
+            'icon' => $icon,
+            'label' => $label,
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
+        ]);
     }
 
     /**
@@ -207,7 +218,13 @@ class BsHelper extends Helper
         $output = [];
         $options += ['class' => 'badge bg-' . ($options['color'] ?? $this->getConfig('defaultColor') ?? 'secondary')];
         foreach ($tags as $tag) {
-            $output[] = $this->Html->tag('span', $tag, $options);
+            $output[] = $this->formatTemplate('badge', [
+                'class' => $options['class'],
+                'aria-label' => $tag,
+                'icon' => '',
+                'label' => $tag,
+                'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
+            ]);
         }
 
         return implode(' ', $output);

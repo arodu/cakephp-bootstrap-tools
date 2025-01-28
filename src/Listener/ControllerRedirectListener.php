@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 /**
  * BootstrapTools CakePHP Plugin
@@ -15,6 +16,7 @@ use Cake\Core\Configure;
 use Cake\Event\EventInterface;
 use Cake\Event\EventListenerInterface;
 use Cake\Http\Response;
+use Cake\Http\ServerRequest;
 use Cake\Routing\Router;
 
 class ControllerRedirectListener implements EventListenerInterface
@@ -36,14 +38,16 @@ class ControllerRedirectListener implements EventListenerInterface
      */
     public function beforeRender(EventInterface $event): void
     {
-        $config = Configure::read('BootstrapTools.redirect');
-        if (!($config['enable'] ?? false)) {
+        $config = $this->getConfig();
+
+        if (!$this->isRedirectEnabled($config)) {
             return;
         }
 
         $controller = $event->getSubject();
         if ($controller instanceof Controller) {
-            $controller->set($config['key'], $this->getRedirectUrl($controller));
+            $redirect = $this->getRedirectUrl($controller->getRequest(), $config);
+            $controller->set($config['key'], $redirect);
         }
     }
 
@@ -55,30 +59,52 @@ class ControllerRedirectListener implements EventListenerInterface
      */
     public function beforeRedirect(EventInterface $event, $url, Response $response): void
     {
-        $config = Configure::read('BootstrapTools.redirect');
-        if (!($config['enable'] ?? false)) {
+        $config = $this->getConfig();
+
+        if (!$this->isRedirectEnabled($config)) {
             return;
         }
 
         $controller = $event->getSubject();
         if ($controller instanceof Controller) {
-            $url = Router::url($this->getRedirectUrl($controller) ?? $url, true);
+            $redirect = $this->getRedirectUrl($controller->getRequest(), $config);
+            $url = Router::url($redirect ?? $url, true);
             $response = $response->withLocation($url);
             $event->setResult($response);
         }
     }
 
     /**
-     * Get the redirect URL if it exists.
-     *
+     * @param ServerRequest $request
+     * @param array $config
      * @return string|null
      */
-    protected function getRedirectUrl(Controller $controller): ?string
+    protected function getRedirectUrl(ServerRequest $request, array $config): ?string
     {
-        $config = Configure::read('BootstrapTools.redirect');
-
-        return $controller->getRequest()->getQuery($config['key'])
-            ?? $controller->getRequest()->getData($config['key'])
+        return $request->getQuery($config['key'])
+            ?? $request->getData($config['key'])
             ?? null;
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfig(): array
+    {
+        $config = Configure::read('BootstrapTools.redirect', []);
+        if (!is_array($config) || !isset($config['key'], $config['enable'])) {
+            return ['key' => 'redirect', 'enable' => true];
+        }
+
+        return $config;
+    }
+
+    /**
+     * @param array $config
+     * @return boolean
+     */
+    public function isRedirectEnabled(array $config): bool
+    {
+        return $config['enable'] ?? false;
     }
 }
