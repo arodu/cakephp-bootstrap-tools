@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace BootstrapTools\View\ActionItems;
 
-use Cake\Core\StaticConfigTrait;
 use Cake\Utility\Hash;
 
 class ActionItem implements ActionItemInterface
