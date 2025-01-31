@@ -105,35 +105,35 @@ class ActionItem implements ActionItemInterface
                 'type' => ActionType::Link,
                 'url' => ['action' => 'index'],
                 'label' => __('List'),
-                'icon' => 'list',
+                'icon' => 'bi bi-list me-1',
                 'color' => 'light',
             ],
             static::View => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'view'],
                 'label' => __('View'),
-                'icon' => 'eye',
+                'icon' => 'bi bi-eye me-1',
                 'color' => 'info',
             ],
             static::Add => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'add'],
                 'label' => __('Add'),
-                'icon' => 'plus',
+                'icon' => 'bi bi-plus me-1',
                 'color' => 'success',
             ],
             static::Edit => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'edit'],
                 'label' => __('Edit'),
-                'icon' => 'pencil',
+                'icon' => 'bi bi-pencil me-1',
                 'color' => 'warning',
             ],
             static::Delete => [
                 'type' => ActionType::PostLink,
                 'url' => ['action' => 'delete'],
                 'label' => __('Delete'),
-                'icon' => 'trash',
+                'icon' => 'bi bi-trash me-1',
                 'color' => 'danger',
                 'confirm' => __('Are you sure you want to delete this item?'),
             ],
@@ -163,7 +163,7 @@ class ActionItem implements ActionItemInterface
             static::Submit => [
                 'type' => ActionType::Button,
                 'label' => __('Submit'),
-                'icon' => 'check',
+                'icon' => 'bi bi-check me-1',
                 'color' => 'primary',
                 'data-loader-onclick' => true,
                 'options' => [
@@ -174,7 +174,7 @@ class ActionItem implements ActionItemInterface
             static::Button => [
                 'type' => ActionType::Button,
                 'label' => __('Button'),
-                'icon' => 'check',
+                'icon' => 'bi bi-check me-1',
                 'color' => 'primary',
                 'options' => [
                     'type' => 'button',
@@ -184,7 +184,7 @@ class ActionItem implements ActionItemInterface
             static::Reset => [
                 'type' => ActionType::Button,
                 'label' => __('Reset'),
-                'icon' => 'check',
+                'icon' => 'bi bi-check me-1',
                 'color' => 'secondary',
                 'options' => [
                     'type' => 'reset',
@@ -194,7 +194,7 @@ class ActionItem implements ActionItemInterface
             static::AjaxSubmit => [
                 'type' => ActionType::Button,
                 'label' => __('Submit'),
-                'icon' => 'check',
+                'icon' => 'bi bi-check me-1',
                 'color' => 'primary',
                 'data-ajax-submit' => true,
                 'data-loader-onclick' => true,
