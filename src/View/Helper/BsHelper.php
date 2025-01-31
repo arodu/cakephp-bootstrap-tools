@@ -252,8 +252,8 @@ class BsHelper extends Helper
         // @todo check wath is flex-shrink-0 and me-2
 
         if ($options['icon'] ?? $this->getConfig('defaultIcon') ?? false) {
-            return $this->Html->tag('i', '', [
-                'class' => 'flex-shrink-0 me-2 bi bi-' . ($visualElement->getIcon() ?? $options['icon'] ?? $this->getConfig('defaultIcon') ?? 'circle-fill')
+            return $this->getView()->Html->tag('i', '', [
+                'class' => 'me-1 ' . ($visualElement->getIcon() ?? $options['icon'] ?? $this->getConfig('defaultIcon') ?? 'circle-fill')
             ]);
         }
         return '';

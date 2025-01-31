@@ -193,7 +193,7 @@ class ActionItemsHelper extends Helper
         $options['class'] = implode(' ', $classes);
 
         if (!empty($item['icon'])) {
-            $label = $this->Html->tag('i', '', ['class' => 'me-2 bi bi-' . $item['icon']]) . $label;
+            $label = $this->Html->tag('i', '', ['class' => $item['icon']]) . $label;
             $options['escape'] = false;
         }
 
