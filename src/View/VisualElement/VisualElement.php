@@ -9,6 +9,7 @@ namespace BootstrapTools\View\VisualElement;
  */
 class VisualElement
 {
+    private int|string $value;
     private string $label;
     private string $icon;
     private string $color;
@@ -23,15 +24,27 @@ class VisualElement
      * @param string $description
      */
     public function __construct(
+        int|string $value,
         string $label = '',
         string $icon = '',
         string $color = '',
         string $description = ''
     ) {
+        $this->value = $value;
         $this->label = $label;
         $this->icon = $icon;
         $this->color = $color;
         $this->description = $description;
+    }
+
+    /**
+     * Get value
+     *
+     * @return int|string
+     */
+    public function getValue(): int|string
+    {
+        return $this->value;
     }
 
     /**
@@ -82,6 +95,7 @@ class VisualElement
     public function toArray(): array
     {
         return [
+            'value' => $this->getValue(),
             'label' => $this->getLabel(),
             'icon' => $this->getIcon(),
             'color' => $this->getColor(),
