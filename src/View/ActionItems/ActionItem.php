@@ -148,7 +148,7 @@ class ActionItem implements ActionItemInterface
                 'url' => '#',
                 'data-bs-dismiss' => 'modal',
                 'aria-label' => __('Close Modal'),
-                'label' => __('Close Modal'),
+                'label' => __('Close'),
                 'color' => 'secondary',
             ],
             static::LimitControl => [
