@@ -1,14 +1,70 @@
-class ModalManager {
+/**
+ * ModalAjaxManager - A class to dynamically manage Bootstrap modals with AJAX-loaded content.
+ *
+ * Features:
+ * - Dynamically loads modal content via AJAX when the modal is shown.
+ * - Processes responses in both JSON and HTML formats.
+ * - Extracts and updates modal title and body; executes inline scripts from loaded content.
+ * - Handles AJAX form submissions within the modal.
+ * - Dispatches custom events to allow hooking into various stages of the modal's lifecycle.
+ *
+ * Configuration Options:
+ * - target (string): ID of the modal element in the DOM (default: 'ajax-modal').
+ * - title (string): Default title to be used in the modal (default: 'Modal Form').
+ * - callback (function): Function to be called when the 'modalAjaxResponse' event is fired.
+ * - csrfToken (string): CSRF token to include in headers for secure form submissions.
+ *
+ * Custom Events:
+ * - modalAjaxLoad:
+ *   Triggered at the beginning of the loadContent() method, before the AJAX request is made.
+ *   Detail: { url, modal, target, relatedTarget }
+ *
+ * - modalAjaxLoaded:
+ *   Triggered after the AJAX content has been successfully loaded and processed.
+ *   Detail: { data, modal, target }
+ *
+ * - modalAjaxSubmit:
+ *   Triggered just before an AJAX form submission is made.
+ *   Detail: { form, modal, target }
+ *
+ * - modalAjaxResponse:
+ *   Triggered after receiving an AJAX response from a form submission (success or error).
+ *   On success:
+ *     Detail: { data, form, modal, target }
+ *   On error:
+ *     Detail: { error, form, modal, target }
+ *
+ * Usage Example:
+ * const modalAjaxManager = new ModalAjaxManager({
+ *   target: 'ajax-modal',
+ *   title: 'My Dynamic Modal',
+ *   csrfToken: 'YOUR_CSRF_TOKEN_HERE',
+ *   callback: (event, detail) => console.log('AJAX Response:', detail)
+ * });
+ *
+ * Note:
+ * - This class expects a modal structure similar to Bootstrap's with elements having the
+ *   classes .modal-title and .modal-body.
+ * - The modal is activated by a trigger element with a data-url attribute that specifies
+ *   the URL to load via AJAX.
+ */
+
+class ModalAjaxManager {
     constructor(config) {
         this.config = {
             target: 'ajax-modal',
+            title: 'Modal Form',
+            classes: {
+                title: '.modal-title',
+                body: '.modal-body'
+            },
             ...config
         };
 
         this.modal = document.getElementById(this.config.target);
         this.loading = {
-            title: this.modal.querySelector('.modal-title').innerHTML,
-            html: this.modal.querySelector('.modal-body').innerHTML
+            title: this.modal.querySelector(this.config.classes.title).innerHTML,
+            html: this.modal.querySelector(this.config.classes.body).innerHTML
         };
 
         this.init();
@@ -46,15 +102,21 @@ class ModalManager {
 
     async loadContent(url) {
         try {
-            this.modal.querySelector('.modal-title').innerHTML = this.loading.title;
-            this.modal.querySelector('.modal-body').innerHTML = this.loading.html;
+            this.dispatchEvent('modalAjaxLoad', {
+                url: url,
+                modal: this.modal,
+                target: this.config.target,
+                relatedTarget: document.activeElement,
+            });
 
+            this.startLoading();
             const response = await fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
             const result = await this.processResponse(response);
             this.updateModal(result);
+
             this.dispatchEvent('modalAjaxLoaded', {
                 data: result,
                 modal: this.modal,
@@ -68,7 +130,7 @@ class ModalManager {
 
     async processResponse(response) {
         const contentType = response.headers.get('Content-Type');
-        let result = { title: 'Formulario', html: '' };
+        let result = { title: this.config.title, html: '' };
 
         if (contentType.includes('application/json')) {
             result = await response.json();
@@ -81,8 +143,9 @@ class ModalManager {
     }
 
     updateModal({ title, html }) {
-        this.modal.querySelector('.modal-title').innerHTML = title;
-        const body = this.modal.querySelector('.modal-body');
+        this.stopLoading();
+        this.modal.querySelector(this.config.classes.title).innerHTML = title ?? this.config.title;
+        const body = this.modal.querySelector(this.config.classes.body);
         body.innerHTML = html;
         this.executeScripts(body);
     }
@@ -100,6 +163,12 @@ class ModalManager {
         const form = event.target;
 
         try {
+            this.dispatchEvent('modalAjaxSubmit', {
+                form: form,
+                modal: this.modal,
+                target: this.config.target,
+            });
+
             const response = await fetch(form.action, {
                 method: form.method,
                 headers: {
@@ -130,6 +199,16 @@ class ModalManager {
         }
     }
 
+    startLoading() {
+        this.modal.classList.add('loading');
+        this.modal.querySelector(this.config.classes.title).innerHTML = this.loading.title;
+        this.modal.querySelector(this.config.classes.body).innerHTML = this.loading.html;
+    }
+
+    stopLoading() {
+        this.modal.classList.remove('loading');
+    }
+
     extractTitle(html) {
         const match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
         return match ? match[1] : null;
@@ -148,4 +227,4 @@ class ModalManager {
     }
 }
 
-window.ModalManager = ModalManager;
+window.ModalAjaxManager = ModalAjaxManager;

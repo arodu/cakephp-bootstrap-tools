@@ -7,7 +7,7 @@
  * @var string|null $jsCallback
  */
 $target ??= 'ajax-modal';
-$script ??= 'BootstrapTools./js/modal-manager';
+$script ??= 'BootstrapTools./js/modal-ajax-manager';
 $jsCallback ??= null;
 
 $modalOptions ??= [];
@@ -54,10 +54,11 @@ $dialogClasses = array_filter([
 <script>
     <?= $this->Html->scriptStart(['block' => true]) ?>
     document.addEventListener('DOMContentLoaded', () => {
-        new ModalManager({
+        new ModalAjaxManager({
             target: "<?= $target ?>",
             csrfToken: "<?= $this->getRequest()->getAttribute('csrfToken') ?>",
-            callback: <?= $jsCallback ?? 'null' ?>
+            callback: <?= $jsCallback ?? 'null' ?>,
+            title: "<?= ($modalOptions['title'] ?? __('Modal Form')) ?>",
         });
     });
     <?= $this->Html->scriptEnd() ?>
