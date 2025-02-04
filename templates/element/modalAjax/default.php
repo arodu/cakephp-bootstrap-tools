@@ -7,7 +7,7 @@
  * @var string|null $jsCallback
  */
 $target ??= 'ajax-modal';
-$script ??= 'BootstrapTools./js/modal-ajax-manager';
+$script ??= 'BootstrapTools./js/bst.modal-ajax-manager';
 $jsCallback ??= null;
 
 $modalOptions ??= [];
@@ -39,11 +39,11 @@ $dialogClasses = array_filter([
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= __('Close') ?>"></button>
             </div>
             <div class="modal-body">
-                <p class="card-text placeholder-glow">
-                    <span class="placeholder col-4"></span>
-                    <span class="placeholder col-4"></span>
-                    <span class="placeholder col-6"></span>
-                </p>
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden"><?= __('Loading...') ?></span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -57,9 +57,19 @@ $dialogClasses = array_filter([
         new ModalAjaxManager({
             target: "<?= $target ?>",
             csrfToken: "<?= $this->getRequest()->getAttribute('csrfToken') ?>",
-            callback: <?= $jsCallback ?? 'null' ?>,
             title: "<?= ($modalOptions['title'] ?? __('Modal Form')) ?>",
         });
     });
+
+    <?php if ($jsCallback): ?>
+        document.addEventListener('modalAjaxResponse', (e) => {
+            if (typeof this.config.callback === 'function') {
+                const callback = <?= $jsCallback ?? 'null' ?>;
+
+                callback(e, e.detail);
+            }
+        });
+    <?php endif; ?>
+
     <?= $this->Html->scriptEnd() ?>
 </script>

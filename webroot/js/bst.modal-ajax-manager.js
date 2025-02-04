@@ -11,7 +11,6 @@
  * Configuration Options:
  * - target (string): ID of the modal element in the DOM (default: 'ajax-modal').
  * - title (string): Default title to be used in the modal (default: 'Modal Form').
- * - callback (function): Function to be called when the 'modalAjaxResponse' event is fired.
  * - csrfToken (string): CSRF token to include in headers for secure form submissions.
  *
  * Custom Events:
@@ -39,7 +38,6 @@
  *   target: 'ajax-modal',
  *   title: 'My Dynamic Modal',
  *   csrfToken: 'YOUR_CSRF_TOKEN_HERE',
- *   callback: (event, detail) => console.log('AJAX Response:', detail)
  * });
  *
  * Note:
@@ -51,14 +49,31 @@
 
 class ModalAjaxManager {
     constructor(config) {
-        this.config = {
+        const defaultConfig = {
             target: 'ajax-modal',
             title: 'Modal Form',
             classes: {
                 title: '.modal-title',
                 body: '.modal-body'
             },
-            ...config
+            form: {
+                autoRender: true,      // Renderizar HTML en el modal
+                autoRedirect: false,  // Redirigir automáticamente
+                redirectKey: 'redirect', // Clave en JSON para redirección
+                redirectHeader: 'X-Redirect-URL', // Header en HTML para redirección
+                closeOnSuccess: false, // Cerrar modal tras éxito
+                overwriteOnLoading: false, // Sobrescribir contenido al cargar
+            },
+            csrfToken: null
+        };
+
+        this.config = {
+            ...defaultConfig,
+            ...config,
+            form: {
+                ...defaultConfig.form,
+                ...(config.form || {})
+            }
         };
 
         this.modal = document.getElementById(this.config.target);
@@ -73,7 +88,6 @@ class ModalAjaxManager {
     init() {
         this.setupEventDelegation();
         this.bindEvents();
-        this.addCustomEvents();
     }
 
     setupEventDelegation() {
@@ -92,14 +106,6 @@ class ModalAjaxManager {
         });
     }
 
-    addCustomEvents() {
-        document.addEventListener('modalAjaxResponse', (e) => {
-            if (typeof this.config.callback === 'function') {
-                this.config.callback(e, e.detail);
-            }
-        });
-    }
-
     async loadContent(url) {
         try {
             this.dispatchEvent('modalAjaxLoad', {
@@ -115,6 +121,8 @@ class ModalAjaxManager {
             });
 
             const result = await this.processResponse(response);
+            this.stopLoading();
+
             this.updateModal(result);
 
             this.dispatchEvent('modalAjaxLoaded', {
@@ -130,20 +138,22 @@ class ModalAjaxManager {
 
     async processResponse(response) {
         const contentType = response.headers.get('Content-Type');
-        let result = { title: this.config.title, html: '' };
+        let result = { title: this.config.title, html: '', redirectUrl: null };
 
         if (contentType.includes('application/json')) {
-            result = await response.json();
+            const data = await response.json();
+            result = { ...result, ...data };
+            result.redirectUrl = data[this.config.form.redirectKey];
         } else if (contentType.includes('text/html')) {
             result.html = await response.text();
             result.title = response.headers.get('X-Modal-Title') || this.extractTitle(result.html) || result.title;
+            result.redirectUrl = response.headers.get(this.config.form.redirectHeader);
         }
 
         return result;
     }
 
     updateModal({ title, html }) {
-        this.stopLoading();
         this.modal.querySelector(this.config.classes.title).innerHTML = title ?? this.config.title;
         const body = this.modal.querySelector(this.config.classes.body);
         body.innerHTML = html;
@@ -169,6 +179,8 @@ class ModalAjaxManager {
                 target: this.config.target,
             });
 
+            this.startLoading();
+
             const response = await fetch(form.action, {
                 method: form.method,
                 headers: {
@@ -180,14 +192,33 @@ class ModalAjaxManager {
             });
 
             const result = await this.processResponse(response);
-            this.updateModal(result);
 
+            this.stopLoading();
+
+            // 1. Renderizar HTML si está habilitado
+            if (this.config.form.autoRender) {
+                this.updateModal(result);
+            }
+
+            // Disparar evento de respuesta
             this.dispatchEvent('modalAjaxResponse', {
                 data: result,
                 form: form,
                 modal: this.modal,
                 target: this.config.target,
             });
+
+            // 2. Cerrar modal si está habilitado
+            if (this.config.form.closeOnSuccess) {
+                const modalInstance = bootstrap.Modal.getInstance(this.modal);
+                if (modalInstance) modalInstance.hide();
+            }
+
+            // 3. Redirigir si está habilitado y hay URL
+            if (this.config.form.autoRedirect && result.redirectUrl) {
+                window.location.href = result.redirectUrl;
+                return;
+            }
 
         } catch (error) {
             this.dispatchEvent('modalAjaxResponse', {
@@ -199,10 +230,13 @@ class ModalAjaxManager {
         }
     }
 
-    startLoading() {
+    startLoading(overwrite = false) {
         this.modal.classList.add('loading');
-        this.modal.querySelector(this.config.classes.title).innerHTML = this.loading.title;
-        this.modal.querySelector(this.config.classes.body).innerHTML = this.loading.html;
+
+        if (config.form.overwriteOnLoading || overwrite) {
+            this.modal.querySelector(this.config.classes.title).innerHTML = this.loading.title;
+            this.modal.querySelector(this.config.classes.body).innerHTML = this.loading.html;
+        }
     }
 
     stopLoading() {
