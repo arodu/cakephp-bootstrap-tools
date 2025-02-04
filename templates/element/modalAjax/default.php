@@ -7,7 +7,7 @@
  * @var string|null $jsCallback
  */
 $target ??= 'ajax-modal';
-$script ??= 'BootstrapTools./js/bst.modal-ajax-manager';
+$script ??= 'BootstrapTools./js/bst.ajax-manager';
 $jsCallback ??= null;
 
 $modalOptions ??= [];
@@ -63,9 +63,9 @@ $dialogClasses = array_filter([
 
     <?php if ($jsCallback): ?>
         document.addEventListener('modalAjaxResponse', (e) => {
-            if (typeof this.config.callback === 'function') {
-                const callback = <?= $jsCallback ?? 'null' ?>;
+            const callback = <?= $jsCallback ?? 'null' ?>;
 
+            if (typeof callback === 'function') {
                 callback(e, e.detail);
             }
         });

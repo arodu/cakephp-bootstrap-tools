@@ -77,7 +77,7 @@ class BootstrapThemeHelper extends Helper
      * @param mixed $viewFile
      * @return void
      */
-    public function beforeRender(EventInterface $event, $viewFile)
+    public function beforeLayout(EventInterface $event, $viewFile)
     {
         if ($this->getConfig('autoRenderAssets') ?? false) {
             $this->renderAssets();

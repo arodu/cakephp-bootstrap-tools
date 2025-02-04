@@ -1,52 +1,3 @@
-/**
- * ModalAjaxManager - A class to dynamically manage Bootstrap modals with AJAX-loaded content.
- *
- * Features:
- * - Dynamically loads modal content via AJAX when the modal is shown.
- * - Processes responses in both JSON and HTML formats.
- * - Extracts and updates modal title and body; executes inline scripts from loaded content.
- * - Handles AJAX form submissions within the modal.
- * - Dispatches custom events to allow hooking into various stages of the modal's lifecycle.
- *
- * Configuration Options:
- * - target (string): ID of the modal element in the DOM (default: 'ajax-modal').
- * - title (string): Default title to be used in the modal (default: 'Modal Form').
- * - csrfToken (string): CSRF token to include in headers for secure form submissions.
- *
- * Custom Events:
- * - modalAjaxLoad:
- *   Triggered at the beginning of the loadContent() method, before the AJAX request is made.
- *   Detail: { url, modal, target, relatedTarget }
- *
- * - modalAjaxLoaded:
- *   Triggered after the AJAX content has been successfully loaded and processed.
- *   Detail: { data, modal, target }
- *
- * - modalAjaxSubmit:
- *   Triggered just before an AJAX form submission is made.
- *   Detail: { form, modal, target }
- *
- * - modalAjaxResponse:
- *   Triggered after receiving an AJAX response from a form submission (success or error).
- *   On success:
- *     Detail: { data, form, modal, target }
- *   On error:
- *     Detail: { error, form, modal, target }
- *
- * Usage Example:
- * const modalAjaxManager = new ModalAjaxManager({
- *   target: 'ajax-modal',
- *   title: 'My Dynamic Modal',
- *   csrfToken: 'YOUR_CSRF_TOKEN_HERE',
- * });
- *
- * Note:
- * - This class expects a modal structure similar to Bootstrap's with elements having the
- *   classes .modal-title and .modal-body.
- * - The modal is activated by a trigger element with a data-url attribute that specifies
- *   the URL to load via AJAX.
- */
-
 class ModalAjaxManager {
     constructor(config) {
         const defaultConfig = {
@@ -233,7 +184,7 @@ class ModalAjaxManager {
     startLoading(overwrite = false) {
         this.modal.classList.add('loading');
 
-        if (config.form.overwriteOnLoading || overwrite) {
+        if (this.config.form.overwriteOnLoading || overwrite) {
             this.modal.querySelector(this.config.classes.title).innerHTML = this.loading.title;
             this.modal.querySelector(this.config.classes.body).innerHTML = this.loading.html;
         }

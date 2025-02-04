@@ -1,81 +1,80 @@
-/**
- * AjaxFormManager - Maneja envíos de formularios vía AJAX de forma independiente.
- * 
- * Configuración:
- * - autoRender: boolean, renderiza HTML en el elemento objetivo (default: true)
- * - autoRedirect: boolean, redirige automáticamente (default: false)
- * - redirectKey: string, clave en JSON para redirección (default: 'redirect')
- * - redirectHeader: string, header en HTML para redirección (default: 'X-Redirect-URL')
- * - defaultTarget: string|Element, selector o elemento donde renderizar respuestas (default: 'ajax-content')
- * - csrfToken: string, token CSRF para cabeceras
- */
-class AjaxFormManager {
-    constructor(config) {
+class FormAjaxManager {
+    constructor(formElement, config = {}) {
         const defaultConfig = {
             autoRender: true,
             autoRedirect: false,
             redirectKey: 'redirect',
             redirectHeader: 'X-Redirect-URL',
-            defaultTarget: 'ajax-content',
-            csrfToken: null
+            target: formElement.closest('.form-container') || document.body,
+            csrfToken: null,
+            onSuccess: null,
+            onError: null
         };
 
         this.config = { ...defaultConfig, ...config };
-        this.setupEventDelegation();
+        this.form = formElement;
+        this.init();
     }
 
-    setupEventDelegation(container = document) {
-        container.addEventListener('submit', e => {
-            if (e.target.tagName === 'FORM') {
-                this.handleSubmit(e);
-            }
-        });
+    init() {
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        this.form.addEventListener('submit', this.handleSubmit.bind(this));
     }
 
     async handleSubmit(event) {
         event.preventDefault();
-        const form = event.target;
         
-        this.dispatchEvent('ajaxFormSubmit', { form });
+        this.dispatchEvent('formAjaxSubmit', { form: this.form });
 
         try {
-            const response = await fetch(form.action, {
-                method: form.method,
+            const response = await fetch(this.form.action, {
+                method: this.form.method,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json, text/html',
                     'X-CSRF-Token': this.config.csrfToken
                 },
-                body: new FormData(form)
+                body: new FormData(this.form)
             });
 
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
             const result = await this.processResponse(response);
-            
-            this.dispatchEvent('ajaxFormResponse', { 
-                data: result, 
-                form,
-                error: null 
-            });
+
+            if (this.config.autoRender) {
+                this.updateTarget(result.html);
+                this.executeScripts(this.config.target);
+            }
 
             if (this.config.autoRedirect && result.redirectUrl) {
                 window.location.href = result.redirectUrl;
                 return;
             }
 
-            if (this.config.autoRender) {
-                const target = this.resolveTarget(form);
-                if (target) {
-                    target.innerHTML = result.html;
-                    this.executeScripts(target);
-                }
+            this.dispatchEvent('formAjaxSuccess', {
+                data: result,
+                form: this.form,
+                target: this.config.target
+            });
+
+            if (this.config.onSuccess) {
+                this.config.onSuccess(result);
             }
 
         } catch (error) {
-            this.dispatchEvent('ajaxFormResponse', { 
-                error: error.message, 
-                form,
-                data: null 
+            this.handleError(error);
+            this.dispatchEvent('formAjaxError', {
+                error: error.message,
+                form: this.form,
+                target: this.config.target
             });
+            
+            if (this.config.onError) {
+                this.config.onError(error);
+            }
         }
     }
 
@@ -85,10 +84,9 @@ class AjaxFormManager {
 
         if (contentType.includes('application/json')) {
             const data = await response.json();
-            result.redirectUrl = data[this.config.redirectKey];
             result.html = data.html || '';
-        } 
-        else if (contentType.includes('text/html')) {
+            result.redirectUrl = data[this.config.redirectKey];
+        } else if (contentType.includes('text/html')) {
             result.html = await response.text();
             result.redirectUrl = response.headers.get(this.config.redirectHeader);
         }
@@ -96,13 +94,8 @@ class AjaxFormManager {
         return result;
     }
 
-    resolveTarget(form) {
-        const customTarget = form.dataset.target;
-        return customTarget 
-            ? document.querySelector(customTarget)
-            : (typeof this.config.defaultTarget === 'string'
-                ? document.querySelector(this.config.defaultTarget)
-                : this.config.defaultTarget);
+    updateTarget(html) {
+        this.config.target.innerHTML = html;
     }
 
     executeScripts(container) {
@@ -113,61 +106,59 @@ class AjaxFormManager {
         });
     }
 
+    handleError(error) {
+        console.error('Form Error:', error);
+        this.config.target.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+    }
+
     dispatchEvent(name, detail) {
         document.dispatchEvent(new CustomEvent(name, { detail }));
     }
 }
 
-/**
- * ModalAjaxManager - Maneja modales dinámicos con contenido AJAX
- * 
- * Configuración:
- * - target: string, ID del modal (default: 'ajax-modal')
- * - title: string, título por defecto (default: 'Modal Form')
- * - classes: { title: string, body: string }, clases para elementos internos
- * - csrfToken: string, token CSRF para formularios
- */
 class ModalAjaxManager {
     constructor(config) {
         const defaultConfig = {
             target: 'ajax-modal',
-            title: 'Modal Form',
-            classes: {
+            modal: {
                 title: '.modal-title',
-                body: '.modal-body'
+                body: '.modal-body',
+                closeOnSuccess: false
+            },
+            form: {
+                autoRender: true,
+                overwriteOnLoading: false
             },
             csrfToken: null
         };
 
-        this.config = { ...defaultConfig, ...config };
+        this.config = {
+            ...defaultConfig,
+            ...config,
+            modal: {
+                ...defaultConfig.modal,
+                ...(config.modal || {})
+            },
+            form: {
+                ...defaultConfig.form,
+                ...(config.form || {})
+            }
+        };
+
         this.modal = document.getElementById(this.config.target);
+        this.loading = {
+            title: this.modal.querySelector(this.config.modal.title).innerHTML,
+            html: this.modal.querySelector(this.config.modal.body).innerHTML
+        };
+
         this.init();
     }
 
     init() {
-        this.initFormManager();
-        this.bindModalEvents();
+        this.bindEvents();
     }
 
-    initFormManager() {
-        this.formManager = new AjaxFormManager({
-            csrfToken: this.config.csrfToken,
-            defaultTarget: this.modal.querySelector(this.config.classes.body)
-        });
-
-        document.addEventListener('ajaxFormResponse', e => {
-            if (e.detail.form.closest(`#${this.config.target}`)) {
-                if (!e.detail.error) {
-                    // Lógica específica del modal después de éxito
-                    this.stopLoading();
-                } else {
-                    this.handleError(e.detail.error);
-                }
-            }
-        });
-    }
-
-    bindModalEvents() {
+    bindEvents() {
         this.modal.addEventListener('show.bs.modal', e => {
             const url = e.relatedTarget?.dataset?.url;
             if (url) this.loadContent(url);
@@ -176,53 +167,83 @@ class ModalAjaxManager {
 
     async loadContent(url) {
         try {
-            this.dispatchEvent('modalAjaxLoad', { url });
+            this.dispatchEvent('modalAjaxLoad', { url, modal: this.modal });
             this.startLoading();
 
             const response = await fetch(url, {
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             });
 
-            const { title, html } = await this.processResponse(response);
-            this.updateModal(title, html);
-            this.dispatchEvent('modalAjaxLoaded', { data: { title, html } });
+            const result = await this.processResponse(response);
+            this.stopLoading();
+            this.updateModal(result);
+            this.attachForms();
+
+            this.dispatchEvent('modalAjaxLoaded', {
+                data: result,
+                modal: this.modal
+            });
 
         } catch (error) {
             this.handleError(error);
-        } finally {
-            this.stopLoading();
         }
     }
 
     async processResponse(response) {
         const contentType = response.headers.get('Content-Type');
-        let title = this.config.title;
-        let html = '';
+        let result = { title: this.config.title, html: '' };
 
         if (contentType.includes('application/json')) {
             const data = await response.json();
-            title = data.title || title;
-            html = data.html;
-        } 
-        else if (contentType.includes('text/html')) {
-            html = await response.text();
-            title = response.headers.get('X-Modal-Title') 
-                || this.extractTitle(html) 
-                || title;
+            result = { ...result, ...data };
+        } else if (contentType.includes('text/html')) {
+            result.html = await response.text();
+            result.title = response.headers.get('X-Modal-Title') || 
+                         this.extractTitle(result.html) || 
+                         this.config.title;
         }
 
-        return { title, html };
+        return result;
     }
 
-    updateModal(title, html) {
-        this.modal.querySelector(this.config.classes.title).textContent = title;
-        const body = this.modal.querySelector(this.config.classes.body);
+    updateModal({ title, html }) {
+        this.modal.querySelector(this.config.modal.title).innerHTML = title;
+        const body = this.modal.querySelector(this.config.modal.body);
         body.innerHTML = html;
-        this.formManager.executeScripts(body);
+        this.executeScripts(body);
+    }
+
+    executeScripts(container) {
+        container.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
+    attachForms() {
+        const body = this.modal.querySelector(this.config.modal.body);
+        body.querySelectorAll('form').forEach(form => {
+            new FormAjaxManager(form, {
+                target: body,
+                autoRender: this.config.form.autoRender,
+                csrfToken: this.config.csrfToken,
+                onSuccess: () => {
+                    if (this.config.modal.closeOnSuccess) {
+                        const modalInstance = bootstrap.Modal.getInstance(this.modal);
+                        if (modalInstance) modalInstance.hide();
+                    }
+                }
+            });
+        });
     }
 
     startLoading() {
         this.modal.classList.add('loading');
+        if (this.config.form.overwriteOnLoading) {
+            this.modal.querySelector(this.config.modal.title).innerHTML = this.loading.title;
+            this.modal.querySelector(this.config.modal.body).innerHTML = this.loading.html;
+        }
     }
 
     stopLoading() {
@@ -231,20 +252,21 @@ class ModalAjaxManager {
 
     extractTitle(html) {
         const match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
-        return match?.[1];
+        return match ? match[1] : null;
     }
 
     handleError(error) {
-        this.updateModal('Error', `<p>${error.message}</p>`);
         console.error('Modal Error:', error);
+        this.updateModal({
+            title: 'Error',
+            html: `<p>${error.message}</p>`
+        });
     }
 
     dispatchEvent(name, detail) {
-        document.dispatchEvent(new CustomEvent(name, { 
-            detail: { ...detail, modal: this.modal, target: this.config.target }
-        }));
+        document.dispatchEvent(new CustomEvent(name, { detail }));
     }
 }
 
-window.AjaxFormManager = AjaxFormManager;
 window.ModalAjaxManager = ModalAjaxManager;
+window.FormAjaxManager = FormAjaxManager;
