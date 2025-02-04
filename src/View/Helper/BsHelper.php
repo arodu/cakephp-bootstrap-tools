@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
@@ -257,5 +258,16 @@ class BsHelper extends Helper
             ]);
         }
         return '';
+    }
+
+    /**
+     * @param integer $startYear
+     * @return string
+     */
+    public function copyrightYears(int $startYear): string
+    {
+        $currentYear = (int) date('Y');
+
+        return $startYear < $currentYear ? "$startYear-$currentYear" : "$startYear";
     }
 }

@@ -59,17 +59,6 @@ class BootstrapThemeHelper extends Helper
     }
 
     /**
-     * @param integer $startYear
-     * @return string
-     */
-    public function copyrightYears(int $startYear): string
-    {
-        $currentYear = (int) date('Y');
-
-        return $startYear < $currentYear ? "$startYear-$currentYear" : "$startYear";
-    }
-
-    /**
      * @param array $options
      * @return void
      */
