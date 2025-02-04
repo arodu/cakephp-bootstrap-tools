@@ -9,4 +9,5 @@ enum ActionType
     case PostLink;
     case LimitControl;
     case Button;
+    case ModalLink;
 }

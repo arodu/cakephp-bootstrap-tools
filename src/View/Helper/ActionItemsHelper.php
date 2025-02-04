@@ -35,7 +35,7 @@ class ActionItemsHelper extends Helper
 
     protected array $options = [];
 
-    protected array $helpers = ['Html', 'Paginator', 'Form'];
+    protected array $helpers = ['Html', 'Paginator', 'Form', 'BootstrapTools.ModalAjax'];
 
     protected string $actionItemClass;
 
@@ -152,6 +152,10 @@ class ActionItemsHelper extends Helper
             case ActionType::LimitControl:
                 $options = $data;
                 return $this->Paginator->limitControl($options['limits'], null, $options['options']);
+
+            case ActionType::ModalLink:
+                $options = $this->formatOptions($data);
+                return $this->ModalAjax->link($options['label'], $options['url'], $options['options']);
 
             default:
                 return '';
