@@ -133,7 +133,7 @@ class ModalAjaxManager extends BaseManager {
             modal: {
                 title: '.modal-title',
                 body: '.modal-body',
-                closeOnSuccess: true,
+                closeOnSuccess: false,
             },
             form: {
                 autoRender: true,

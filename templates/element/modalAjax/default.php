@@ -59,7 +59,7 @@ $dialogClasses = array_filter([
             csrfToken: "<?= $this->getRequest()->getAttribute('csrfToken') ?>",
             title: "<?= ($modalOptions['title'] ?? __('Modal Form')) ?>",
             modal: {
-                closeOnSuccess: true,
+                //closeOnSuccess: true,
             }
         });
     });
