@@ -1,5 +1,24 @@
-class FormAjaxManager {
+class BaseManager {
+    static mergeConfig(defaults, config) {
+        return { ...defaults, ...config };
+    }
+
+    executeScripts(container) {
+        container.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
+    dispatchEvent(name, detail) {
+        document.dispatchEvent(new CustomEvent(name, { detail }));
+    }
+}
+
+class FormAjaxManager extends BaseManager {
     constructor(formElement, config = {}) {
+        super();
         const defaultConfig = {
             autoRender: true,
             autoRedirect: false,
@@ -11,7 +30,7 @@ class FormAjaxManager {
             onError: null
         };
 
-        this.config = { ...defaultConfig, ...config };
+        this.config = BaseManager.mergeConfig(defaultConfig, config);
         this.form = formElement;
         this.init();
     }
@@ -26,22 +45,19 @@ class FormAjaxManager {
 
     async handleSubmit(event) {
         event.preventDefault();
-        
+
         this.dispatchEvent('formAjaxSubmit', { form: this.form });
 
         try {
             const response = await fetch(this.form.action, {
                 method: this.form.method,
-                redirect: 'manual',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json, text/html',
+                    'Accept': 'application/json, text/html, text/plain',
                     'X-CSRF-Token': this.config.csrfToken
                 },
                 body: new FormData(this.form)
             });
-
-            //if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const result = await this.processResponse(response);
 
@@ -72,7 +88,7 @@ class FormAjaxManager {
                 form: this.form,
                 target: this.config.target
             });
-            
+
             if (this.config.onError) {
                 this.config.onError(error);
             }
@@ -83,37 +99,14 @@ class FormAjaxManager {
         const contentType = response.headers.get('Content-Type') || '';
         let result = { html: '', redirectUrl: null };
 
-        console.log('Response', response);
-
-        // Detectar redirecciones HTTP 3xx
-        if (response.status >= 300 && response.status < 400) {
-            result.redirectUrl = response.headers.get('Location');
-            
-            if (!result.redirectUrl) {
-                throw new Error('Redirect response missing Location header');
-            }
-            
-            // Si es redirección pero viene contenido, preservarlo
-            if (contentType.includes('application/json')) {
-                const data = await response.json();
-                result = { ...result, ...data };
-            } else if (contentType.includes('text/html')) {
-                result.html = await response.text();
-            }
-            
-            return result;
-        }
-
-        // Manejar errores HTTP 4xx/5xx
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
         }
 
-        // Procesar respuesta exitosa
         if (contentType.includes('application/json')) {
             const data = await response.json();
             result.html = data.html || '';
-            result.redirectUrl = data[this.config.redirectKey];
+            result.redirectUrl = data[this.config.redirectKey] ?? null;
         } else if (contentType.includes('text/html')) {
             result.html = await response.text();
             result.redirectUrl = response.headers.get(this.config.redirectHeader);
@@ -126,26 +119,15 @@ class FormAjaxManager {
         this.config.target.innerHTML = html;
     }
 
-    executeScripts(container) {
-        container.querySelectorAll('script').forEach(oldScript => {
-            const newScript = document.createElement('script');
-            newScript.textContent = oldScript.textContent;
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
-    }
-
     handleError(error) {
         console.error('Form Error:', error);
         this.config.target.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
     }
-
-    dispatchEvent(name, detail) {
-        document.dispatchEvent(new CustomEvent(name, { detail }));
-    }
 }
 
-class ModalAjaxManager {
+class ModalAjaxManager extends BaseManager {
     constructor(config) {
+        super();
         const defaultConfig = {
             target: 'ajax-modal',
             modal: {
@@ -156,23 +138,16 @@ class ModalAjaxManager {
             form: {
                 autoRender: true,
                 overwriteOnLoading: false,
+                autoRedirect: true,
             },
             csrfToken: null
         };
 
-        this.config = {
-            ...defaultConfig,
-            ...config,
-            modal: {
-                ...defaultConfig.modal,
-                ...(config.modal || {})
-            },
-            form: {
-                ...defaultConfig.form,
-                ...(config.form || {})
-            }
-        };
+        let mergedConfig = BaseManager.mergeConfig(defaultConfig, config);
+        mergedConfig.modal = { ...defaultConfig.modal, ...(config.modal || {}) };
+        mergedConfig.form = { ...defaultConfig.form, ...(config.form || {}) };
 
+        this.config = mergedConfig;
         this.modal = document.getElementById(this.config.target);
         this.loading = {
             title: this.modal.querySelector(this.config.modal.title).innerHTML,
@@ -219,16 +194,16 @@ class ModalAjaxManager {
 
     async processResponse(response) {
         const contentType = response.headers.get('Content-Type');
-        let result = { title: this.config.title, html: '' };
+        let result = { title: '', html: '' };
 
         if (contentType.includes('application/json')) {
             const data = await response.json();
             result = { ...result, ...data };
         } else if (contentType.includes('text/html')) {
             result.html = await response.text();
-            result.title = response.headers.get('X-Modal-Title') || 
-                         this.extractTitle(result.html) || 
-                         this.config.title;
+            result.title = response.headers.get('X-Modal-Title') ||
+                this.extractTitle(result.html) ||
+                this.config.title;
         }
 
         return result;
@@ -239,14 +214,6 @@ class ModalAjaxManager {
         const body = this.modal.querySelector(this.config.modal.body);
         body.innerHTML = html;
         this.executeScripts(body);
-    }
-
-    executeScripts(container) {
-        container.querySelectorAll('script').forEach(oldScript => {
-            const newScript = document.createElement('script');
-            newScript.textContent = oldScript.textContent;
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
     }
 
     attachForms() {
@@ -290,160 +257,7 @@ class ModalAjaxManager {
             html: `<p>${error.message}</p>`
         });
     }
-
-    dispatchEvent(name, detail) {
-        document.dispatchEvent(new CustomEvent(name, { detail }));
-    }
-}
-
-class LinkAjaxManager {
-    constructor(linkElement, config = {}) {
-        const defaultConfig = {
-            autoRender: true,
-            loadingClass: 'loading',
-            csrfToken: null,
-            onBeforeLoad: null,
-            onAfterLoad: null,
-            onError: null
-        };
-
-        this.config = { ...defaultConfig, ...config };
-        this.link = linkElement;
-        this.targetSelector = this.link.dataset.target;
-        this.targetElement = document.querySelector(this.targetSelector);
-        
-        if (!this.targetElement) {
-            throw new Error(`Target element not found: ${this.targetSelector}`);
-        }
-
-        this.init();
-    }
-
-    init() {
-        this.bindEvents();
-    }
-
-    bindEvents() {
-        this.link.addEventListener('click', this.handleClick.bind(this));
-    }
-
-    async handleClick(event) {
-        event.preventDefault();
-        
-        try {
-            this.dispatchEvent('linkAjaxLoad', {
-                link: this.link,
-                target: this.targetElement
-            });
-
-            if (this.config.onBeforeLoad) {
-                this.config.onBeforeLoad(this.link, this.targetElement);
-            }
-
-            this.showLoading();
-            
-            const response = await fetch(this.link.href, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-
-            const result = await this.processResponse(response);
-            
-            this.hideLoading();
-            
-            if (result.redirectUrl) {
-                window.location.href = result.redirectUrl;
-                return;
-            }
-
-            if (this.config.autoRender) {
-                this.updateContent(result.html);
-                this.attachForms();
-            }
-
-            this.dispatchEvent('linkAjaxLoaded', {
-                data: result,
-                link: this.link,
-                target: this.targetElement
-            });
-
-            if (this.config.onAfterLoad) {
-                this.config.onAfterLoad(result, this.link, this.targetElement);
-            }
-
-        } catch (error) {
-            this.handleError(error);
-            
-            if (this.config.onError) {
-                this.config.onError(error, this.link, this.targetElement);
-            }
-        }
-    }
-
-    async processResponse(response) {
-        const contentType = response.headers.get('Content-Type') || '';
-        let result = { html: '', redirectUrl: null };
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        if (contentType.includes('application/json')) {
-            const data = await response.json();
-            result.html = data.html || '';
-            result.redirectUrl = data.redirect;
-        } else if (contentType.includes('text/html')) {
-            result.html = await response.text();
-            result.redirectUrl = response.headers.get('X-Redirect-URL');
-        }
-
-        return result;
-    }
-
-    updateContent(html) {
-        this.targetElement.innerHTML = html;
-        this.executeScripts(this.targetElement);
-    }
-
-    executeScripts(container) {
-        container.querySelectorAll('script').forEach(oldScript => {
-            const newScript = document.createElement('script');
-            newScript.textContent = oldScript.textContent;
-            oldScript.parentNode.replaceChild(newScript, oldScript);
-        });
-    }
-
-    attachForms() {
-        this.targetElement.querySelectorAll('form').forEach(form => {
-            new FormAjaxManager(form, {
-                target: this.targetElement,
-                autoRender: this.config.autoRender,
-                csrfToken: this.config.csrfToken
-            });
-        });
-    }
-
-    showLoading() {
-        this.targetElement.classList.add(this.config.loadingClass);
-    }
-
-    hideLoading() {
-        this.targetElement.classList.remove(this.config.loadingClass);
-    }
-
-    handleError(error) {
-        console.error('Link Error:', error);
-        this.targetElement.innerHTML = `
-            <div class="alert alert-danger">
-                Error loading content: ${error.message}
-            </div>
-        `;
-    }
-
-    dispatchEvent(name, detail) {
-        document.dispatchEvent(new CustomEvent(name, { detail }));
-    }
 }
 
 window.FormAjaxManager = FormAjaxManager;
 window.ModalAjaxManager = ModalAjaxManager;
-window.LinkAjaxManager = LinkAjaxManager;

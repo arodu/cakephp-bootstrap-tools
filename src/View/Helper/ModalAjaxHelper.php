@@ -108,6 +108,10 @@ class ModalAjaxHelper extends Helper
         $target = $target ?? $options['target'] ?? $this->getConfig('target');
         $jsCallback = $this->getConfig('jsCallback') ?? $this->jsCallback;
         $modalOptions = Hash::merge($this->getConfig('modalOptions'), $options['modalOptions'] ?? []);
+
+        $modalOptions['title'] = $modalOptions['title'] ?? $options['title'] ?? '';
+        unset($options['title']);
+
         $options = Hash::merge($this->getConfig(), $options, [
             'target' => $target,
             'jsCallback' => $jsCallback,
