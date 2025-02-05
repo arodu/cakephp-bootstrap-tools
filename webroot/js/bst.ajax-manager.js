@@ -32,6 +32,7 @@ class FormAjaxManager {
         try {
             const response = await fetch(this.form.action, {
                 method: this.form.method,
+                redirect: 'manual',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'Accept': 'application/json, text/html',
@@ -40,7 +41,7 @@ class FormAjaxManager {
                 body: new FormData(this.form)
             });
 
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            //if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
             const result = await this.processResponse(response);
 
@@ -79,9 +80,36 @@ class FormAjaxManager {
     }
 
     async processResponse(response) {
-        const contentType = response.headers.get('Content-Type');
+        const contentType = response.headers.get('Content-Type') || '';
         let result = { html: '', redirectUrl: null };
 
+        console.log('Response', response);
+
+        // Detectar redirecciones HTTP 3xx
+        if (response.status >= 300 && response.status < 400) {
+            result.redirectUrl = response.headers.get('Location');
+            
+            if (!result.redirectUrl) {
+                throw new Error('Redirect response missing Location header');
+            }
+            
+            // Si es redirección pero viene contenido, preservarlo
+            if (contentType.includes('application/json')) {
+                const data = await response.json();
+                result = { ...result, ...data };
+            } else if (contentType.includes('text/html')) {
+                result.html = await response.text();
+            }
+            
+            return result;
+        }
+
+        // Manejar errores HTTP 4xx/5xx
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // Procesar respuesta exitosa
         if (contentType.includes('application/json')) {
             const data = await response.json();
             result.html = data.html || '';
@@ -123,11 +151,11 @@ class ModalAjaxManager {
             modal: {
                 title: '.modal-title',
                 body: '.modal-body',
-                closeOnSuccess: false
+                closeOnSuccess: true,
             },
             form: {
                 autoRender: true,
-                overwriteOnLoading: false
+                overwriteOnLoading: false,
             },
             csrfToken: null
         };
@@ -268,5 +296,154 @@ class ModalAjaxManager {
     }
 }
 
-window.ModalAjaxManager = ModalAjaxManager;
+class LinkAjaxManager {
+    constructor(linkElement, config = {}) {
+        const defaultConfig = {
+            autoRender: true,
+            loadingClass: 'loading',
+            csrfToken: null,
+            onBeforeLoad: null,
+            onAfterLoad: null,
+            onError: null
+        };
+
+        this.config = { ...defaultConfig, ...config };
+        this.link = linkElement;
+        this.targetSelector = this.link.dataset.target;
+        this.targetElement = document.querySelector(this.targetSelector);
+        
+        if (!this.targetElement) {
+            throw new Error(`Target element not found: ${this.targetSelector}`);
+        }
+
+        this.init();
+    }
+
+    init() {
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        this.link.addEventListener('click', this.handleClick.bind(this));
+    }
+
+    async handleClick(event) {
+        event.preventDefault();
+        
+        try {
+            this.dispatchEvent('linkAjaxLoad', {
+                link: this.link,
+                target: this.targetElement
+            });
+
+            if (this.config.onBeforeLoad) {
+                this.config.onBeforeLoad(this.link, this.targetElement);
+            }
+
+            this.showLoading();
+            
+            const response = await fetch(this.link.href, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const result = await this.processResponse(response);
+            
+            this.hideLoading();
+            
+            if (result.redirectUrl) {
+                window.location.href = result.redirectUrl;
+                return;
+            }
+
+            if (this.config.autoRender) {
+                this.updateContent(result.html);
+                this.attachForms();
+            }
+
+            this.dispatchEvent('linkAjaxLoaded', {
+                data: result,
+                link: this.link,
+                target: this.targetElement
+            });
+
+            if (this.config.onAfterLoad) {
+                this.config.onAfterLoad(result, this.link, this.targetElement);
+            }
+
+        } catch (error) {
+            this.handleError(error);
+            
+            if (this.config.onError) {
+                this.config.onError(error, this.link, this.targetElement);
+            }
+        }
+    }
+
+    async processResponse(response) {
+        const contentType = response.headers.get('Content-Type') || '';
+        let result = { html: '', redirectUrl: null };
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (contentType.includes('application/json')) {
+            const data = await response.json();
+            result.html = data.html || '';
+            result.redirectUrl = data.redirect;
+        } else if (contentType.includes('text/html')) {
+            result.html = await response.text();
+            result.redirectUrl = response.headers.get('X-Redirect-URL');
+        }
+
+        return result;
+    }
+
+    updateContent(html) {
+        this.targetElement.innerHTML = html;
+        this.executeScripts(this.targetElement);
+    }
+
+    executeScripts(container) {
+        container.querySelectorAll('script').forEach(oldScript => {
+            const newScript = document.createElement('script');
+            newScript.textContent = oldScript.textContent;
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
+    attachForms() {
+        this.targetElement.querySelectorAll('form').forEach(form => {
+            new FormAjaxManager(form, {
+                target: this.targetElement,
+                autoRender: this.config.autoRender,
+                csrfToken: this.config.csrfToken
+            });
+        });
+    }
+
+    showLoading() {
+        this.targetElement.classList.add(this.config.loadingClass);
+    }
+
+    hideLoading() {
+        this.targetElement.classList.remove(this.config.loadingClass);
+    }
+
+    handleError(error) {
+        console.error('Link Error:', error);
+        this.targetElement.innerHTML = `
+            <div class="alert alert-danger">
+                Error loading content: ${error.message}
+            </div>
+        `;
+    }
+
+    dispatchEvent(name, detail) {
+        document.dispatchEvent(new CustomEvent(name, { detail }));
+    }
+}
+
 window.FormAjaxManager = FormAjaxManager;
+window.ModalAjaxManager = ModalAjaxManager;
+window.LinkAjaxManager = LinkAjaxManager;
