@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace BootstrapTools\View\Helper;
+namespace BootstrapTools\View\Trait;
 
 use Cake\Core\Configure;
 use Cake\Event\EventInterface;
@@ -14,18 +14,20 @@ trait ThemeSettingsTrait
      * Default configuration.
      *
      * @var array<string, mixed>
-     */
-    protected array $_defaultConfig = [
-        'configKey' => 'Bootstrap',
-        'settings' => [
-            'appName' => 'BootstrapTheme Demo',
-            'appLogo' => 'BootstrapTools./logo.png',
-        ],
-        'autoRenderAssets' => false,
-        'meta' => [],
-        'css' => [],
-        'scripts' => [],
-    ];
+     * 
+     * Example:
+     * protected array $_defaultConfig = [
+     *     'configKey' => 'Bootstrap',
+     *     'settings' => [
+     *         'appName' => 'BootstrapTheme Demo',
+     *         'appLogo' => 'BootstrapTools./logo.png',
+     *     ],
+     *     'autoRenderAssets' => false,
+     *     'meta' => [],
+     *     'css' => [],
+     *     'scripts' => [],
+     * ];
+    */
 
     /**
      * @inheritDoc
@@ -82,12 +84,11 @@ trait ThemeSettingsTrait
 
     /**
      * @param EventInterface $event
-     * @param mixed $viewFile
+     * @param string $layoutFile
      * @return void
      */
-    public function beforeLayout(EventInterface $event, $viewFile)
+    public function beforeLayout(EventInterface $event, $layoutFile): void
     {
-        parent::beforeLayout($event, $viewFile);
         if ($this->getConfig('autoRenderAssets') ?? false) {
             $this->renderAssets();
         }
