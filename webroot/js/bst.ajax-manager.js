@@ -21,9 +21,6 @@ class FormAjaxManager extends BaseManager {
         super();
         const defaultConfig = {
             autoRender: true,
-            autoRedirect: false,
-            redirectKey: 'redirect',
-            redirectHeader: 'X-Redirect-URL',
             target: formElement.closest('.form-container') || document.body,
             csrfToken: null,
             onSuccess: null,
@@ -36,6 +33,8 @@ class FormAjaxManager extends BaseManager {
 
         this.config = BaseManager.mergeConfig(defaultConfig, config);
         this.form = formElement;
+
+        this.boundHandleSubmit = this.handleSubmit.bind(this);
         this.init();
     }
 
@@ -44,7 +43,19 @@ class FormAjaxManager extends BaseManager {
     }
 
     bindEvents() {
-        this.config.target.addEventListener('submit', this.handleSubmit.bind(this));
+        // Adjuntar evento al formulario, no al contenedor
+        this.form.addEventListener('submit', this.boundHandleSubmit);
+    }
+
+    updateTarget(html) {
+        // Remover evento del formulario antiguo
+        if (this.form) {
+            this.form.removeEventListener('submit', this.boundHandleSubmit);
+        }
+        this.config.target.innerHTML = html;
+        this.form = this.config.target.querySelector('form');
+        // Adjuntar evento al nuevo formulario
+        this.bindEvents();
     }
 
     async handleSubmit(event) {
@@ -70,15 +81,11 @@ class FormAjaxManager extends BaseManager {
                 this.executeScripts(this.config.target);
             }
 
-            if (this.config.autoRedirect && result.redirectUrl) {
-                window.location.href = result.redirectUrl;
-                return;
-            }
-
             this.dispatchEvent('formAjaxSuccess', {
                 data: result,
                 form: this.form,
-                target: this.config.target
+                target: this.config.target,
+                response,
             });
 
             if (this.config.onSuccess) {
@@ -90,7 +97,8 @@ class FormAjaxManager extends BaseManager {
             this.dispatchEvent('formAjaxError', {
                 error: error.message,
                 form: this.form,
-                target: this.config.target
+                target: this.config.target,
+                response,
             });
 
             if (this.config.onError) {
@@ -101,7 +109,7 @@ class FormAjaxManager extends BaseManager {
 
     async processResponse(response) {
         const contentType = response.headers.get('Content-Type') || '';
-        let result = { html: '', redirectUrl: null };
+        let result = { html: '', success: response.ok };
 
         if (!response.ok) {
             throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
@@ -110,18 +118,12 @@ class FormAjaxManager extends BaseManager {
         if (contentType.includes('application/json')) {
             const data = await response.json();
             result.html = data.html || '';
-            result.redirectUrl = data[this.config.redirectKey] ?? null;
+            result.success = data.success || false;
         } else if (contentType.includes('text/html')) {
             result.html = await response.text();
-            result.redirectUrl = response.headers.get(this.config.redirectHeader);
         }
 
         return result;
-    }
-
-    updateTarget(html) {
-        this.config.target.innerHTML = html;
-        this.form = this.config.target.querySelector('form');
     }
 
     handleError(error) {
@@ -139,11 +141,11 @@ class ModalAjaxManager extends BaseManager {
                 title: '.modal-title',
                 body: '.modal-body',
                 closeOnSuccess: false,
+                reloadOnClose: false,
             },
             form: {
                 autoRender: true,
                 overwriteOnLoading: false,
-                autoRedirect: true,
             },
             csrfToken: null
         };
@@ -222,10 +224,10 @@ class ModalAjaxManager extends BaseManager {
     }
 
     attachForms() {
-        const body = this.modal.querySelector(this.config.modal.body);
-        body.querySelectorAll('form').forEach(form => {
+        const modalBody = this.modal.querySelector(this.config.modal.body);
+        modalBody.querySelectorAll('form').forEach(form => {
             new FormAjaxManager(form, {
-                target: body,
+                target: modalBody,
                 autoRender: this.config.form.autoRender,
                 csrfToken: this.config.csrfToken,
                 onSuccess: () => {
