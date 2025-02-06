@@ -22,6 +22,7 @@ class ModalAjaxHelper extends Helper
         'target' => 'ajax-modal',
         'element' => 'BootstrapTools.modalAjax/default',
         'script' => 'BootstrapTools./js/bst.ajax-manager',
+        'jsCallback' => false, // 'function (event, detail) { console.log(detail); }',
 
         'modalOptions' => [
             'size' => null, // 'modal-lg', 'modal-sm'
@@ -41,15 +42,6 @@ class ModalAjaxHelper extends Helper
      * @var array
      */
     protected array $targets = [];
-
-    /**
-     * @var string
-     */
-    protected string $jsCallback = <<<JS_SCRIPT
-    function (event, detail) {
-        //console.log(detail);
-    }
-    JS_SCRIPT;
 
     /**
      * @param array|string $title
@@ -106,7 +98,7 @@ class ModalAjaxHelper extends Helper
     public function renderItem(string $target = null, array $options = []): string
     {
         $target = $target ?? $options['target'] ?? $this->getConfig('target');
-        $jsCallback = $this->getConfig('jsCallback') ?? $this->jsCallback;
+        $jsCallback = $this->getConfig('jsCallback', null);
         $modalOptions = Hash::merge($this->getConfig('modalOptions'), $options['modalOptions'] ?? []);
 
         $modalOptions['title'] = $modalOptions['title'] ?? $options['title'] ?? '';

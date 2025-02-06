@@ -1,25 +1,14 @@
 <?php
+
 declare(strict_types=1);
-/**
- * BootstrapTools CakePHP Plugin
- * 
- * @copyright 2025 Alberto Rodriguez
- * @author Alberto Rodriguez <arodu.dev@gmail.com>
- * @link https://github.com/arodu
- */
 
 namespace BootstrapTools\View\Helper;
 
+use Cake\Core\Configure;
 use Cake\Event\EventInterface;
 use Cake\Utility\Hash;
-use Cake\View\Helper;
 
-/**
- * BootstrapThemeHelper helper
- * 
- * @property \Cake\View\Helper\HtmlHelper $Html
- */
-class BootstrapThemeHelper extends Helper
+trait ThemeSettingsTrait
 {
     /**
      * Default configuration.
@@ -27,6 +16,7 @@ class BootstrapThemeHelper extends Helper
      * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
+        'configKey' => 'Bootstrap',
         'settings' => [
             'appName' => 'BootstrapTheme Demo',
             'appLogo' => 'BootstrapTools./logo.png',
@@ -36,6 +26,24 @@ class BootstrapThemeHelper extends Helper
         'css' => [],
         'scripts' => [],
     ];
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function getView(): \Cake\View\View;
+
+    /**
+     * @inheritDoc
+     */
+    abstract public function getConfig(?string $key = null, mixed $default = null): mixed;
+
+
+    public function themeSettingsInitialize(array $config): void
+    {
+        $config = Hash::merge(Configure::read($this->getConfig('configKey'), []), $config);
+        $this->setConfig($config);
+    }
+
 
     /**
      * Get settings value
@@ -79,6 +87,7 @@ class BootstrapThemeHelper extends Helper
      */
     public function beforeLayout(EventInterface $event, $viewFile)
     {
+        parent::beforeLayout($event, $viewFile);
         if ($this->getConfig('autoRenderAssets') ?? false) {
             $this->renderAssets();
         }
