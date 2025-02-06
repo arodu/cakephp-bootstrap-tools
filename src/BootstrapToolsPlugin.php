@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace BootstrapTools;
 
-use BootstrapTools\Listener\ControllerRedirectListener;
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
 use Cake\Core\Configure;
@@ -31,17 +30,11 @@ class BootstrapToolsPlugin extends BasePlugin
     {
         $config = Configure::read('BootstrapTools');
         Configure::write('BootstrapTools', Hash::merge([
-            'redirect' => [
-                'enable' => true,
-                'key' => 'redirect',
-            ],
             'menu' => [
                 'default' => 'Menu',
                 'key' => 'activeMenuItem',
             ],
         ], $config));
-
-        $app->getEventManager()->on(new ControllerRedirectListener());
     }
 
     /**
