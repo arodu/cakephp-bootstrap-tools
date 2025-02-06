@@ -30,6 +30,10 @@ class FormAjaxManager extends BaseManager {
             onError: null
         };
 
+        if (typeof defaultConfig.target === 'string') {
+            defaultConfig.target = document.querySelector(defaultConfig.target);
+        }
+
         this.config = BaseManager.mergeConfig(defaultConfig, config);
         this.form = formElement;
         this.init();
@@ -40,7 +44,7 @@ class FormAjaxManager extends BaseManager {
     }
 
     bindEvents() {
-        this.form.addEventListener('submit', this.handleSubmit.bind(this));
+        this.config.target.addEventListener('submit', this.handleSubmit.bind(this));
     }
 
     async handleSubmit(event) {
@@ -117,6 +121,7 @@ class FormAjaxManager extends BaseManager {
 
     updateTarget(html) {
         this.config.target.innerHTML = html;
+        this.form = this.config.target.querySelector('form');
     }
 
     handleError(error) {
