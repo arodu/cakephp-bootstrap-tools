@@ -1,4 +1,5 @@
 # Index
 
-- [MenuHelper](menu.md)
+- [MenuHelper](menu-helper.md)
+- [ModalAjaxHelper](modal-ajax-helper.md)
 

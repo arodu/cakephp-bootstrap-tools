@@ -1,3 +1,112 @@
+/**
+ * BootstrapTools - A CakePHP Plugin
+ *
+ * @package     BootstrapTools
+ * @author      Alberto Rodriguez <arodu.dev@gmail.com>
+ * @copyright   2025 Alberto Rodriguez
+ * @license     MIT
+ * @link        https://github.com/arodu/cakephp-bootstrap-tools
+ */
+/**
+ * BootstrapTools - AJAX Form and Modal Management Utilities
+ * 
+ * Provides FormAjaxManager and ModalAjaxManager classes for handling AJAX form submissions
+ * and dynamic modal content loading with Bootstrap compatibility.
+ * 
+ * ========================================================================================
+ * 
+ * FORM AJAX MANAGER USAGE:
+ * 
+ * Initialize:
+ * const formManager = new FormAjaxManager(document.querySelector('form'), {
+ *   target: '.form-container',  // Container to update with response (default: form's parent)
+ *   autoRender: true,           // Automatically render HTML responses (default: true)
+ *   csrfToken: 'your_token',    // CSRF token for form submissions
+ *   onSuccess: (result) => {},  // Custom success callback
+ *   onError: (error) => {}      // Custom error callback
+ * });
+ * 
+ * Events:
+ * - formAjaxSubmit: Dispatched before submission
+ *   detail: { form }
+ * 
+ * - formAjaxSuccess: Dispatched on successful response
+ *   detail: { data, form, target, response }
+ * 
+ * - formAjaxError: Dispatched on error
+ *   detail: { error, form, target, response }
+ * 
+ * Methods:
+ * - updateTarget(html): Replace target content with new HTML and rebind form
+ * - executeScripts(container): Reinitialize scripts in updated content
+ * 
+ * ========================================================================================
+ * 
+ * MODAL AJAX MANAGER USAGE:
+ * 
+ * Initialize:
+ * const modalManager = new ModalAjaxManager({
+ *   target: 'ajax-modal',       // Modal element ID (required)
+ *   csrfToken: 'your_token',    // CSRF token for modal forms
+ *   modal: {
+ *     closeOnSuccess: true,     // Close modal after successful form submission
+ *     reloadPageOnClose: true   // Reload page when modal closes (if flagged)
+ *   },
+ *   form: {
+ *     autoRender: true          // Auto-render form responses in modal
+ *   }
+ * });
+ * 
+ * Trigger Content Loading:
+ * Add data-url="/your-endpoint" to any element that triggers the modal
+ * 
+ * Events:
+ * - modalAjaxLoad: Dispatched before content load
+ *   detail: { url, modal }
+ * 
+ * - modalAjaxLoaded: Dispatched after successful content load
+ *   detail: { data, modal }
+ * 
+ * - modalAjaxError: Dispatched on error
+ *   detail: { error }
+ * 
+ * Methods:
+ * - loadContent(url): Manually load content into modal
+ * - updateModal({title, html}): Update modal content programmatically
+ * 
+ * ========================================================================================
+ * 
+ * REQUIREMENTS:
+ * - Bootstrap 5+ (for modal functionality)
+ * - Fetch API support
+ * - Server responses should include either:
+ *   - JSON with {html, success} for forms
+ *   - HTML with optional X-Modal-Title header for modals
+ * 
+ * SETUP EXAMPLE:
+ * <!-- Modal Structure -->
+ * <div id="ajax-modal" class="modal">
+ *   <div class="modal-content">
+ *     <div class="modal-title"></div>
+ *     <div class="modal-body"></div>
+ *   </div>
+ * </div>
+ * 
+ * <!-- Trigger -->
+ * <button data-bs-toggle="modal" 
+ *         data-bs-target="#ajax-modal"
+ *         data-url="/load-content">
+ *   Open Modal
+ * </button>
+ * 
+ * Listeners Example:
+ * document.addEventListener('formAjaxSuccess', (e) => {
+ *   if (e.detail.form.id === 'search-form') {
+ *     // Update search results
+ *   }
+ * });
+ */
+
 class BaseManager {
     static mergeConfig(defaults, config) {
         return { ...defaults, ...config };
@@ -55,7 +164,7 @@ class FormAjaxManager extends BaseManager {
         this.config.target.innerHTML = html;
         this.form = this.config.target.querySelector('form');
         if (!this.form) {
-            console.warn('Nuevo HTML no contiene un formulario');
+            console.warn('New HTML does not contain a form');
         }
 
         this.bindEvents();
@@ -115,7 +224,7 @@ class FormAjaxManager extends BaseManager {
         let result = { html: '', success: response.ok };
 
         if (!response.ok) {
-            throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+            throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
         }
 
         if (contentType.includes('application/json')) {
@@ -130,7 +239,7 @@ class FormAjaxManager extends BaseManager {
     }
 
     handleError(error) {
-        const message = error.message || 'Error al procesar la solicitud';
+        const message = error.message || 'Error processing request';
         console.error('Form Error:', message);
         this.config.target.innerHTML = `<div class="alert alert-danger">${message}</div>`;    
     }
