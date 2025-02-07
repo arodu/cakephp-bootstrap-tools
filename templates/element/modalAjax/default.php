@@ -59,7 +59,9 @@ $dialogClasses = array_filter([
             csrfToken: "<?= $this->getRequest()->getAttribute('csrfToken') ?>",
             title: "<?= ($modalOptions['title'] ?? __('Modal Form')) ?>",
             modal: {
-                //closeOnSuccess: true,
+                closeOnSuccess: <?= $closeOnSuccess ? 'true' : 'false' ?>,
+                reloadPageOnSuccess: <?= $reloadPageOnSuccess ? 'true' : 'false' ?>,
+                reloadPageOnClose: <?= $reloadPageOnClose ? 'true' : 'false' ?>,
             }
         });
     });

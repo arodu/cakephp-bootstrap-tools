@@ -6,7 +6,6 @@ namespace BootstrapTools\View\Helper;
 
 use Cake\Utility\Hash;
 use Cake\View\Helper;
-use Cake\View\View;
 
 /**
  * ModalAjax helper
@@ -35,7 +34,11 @@ class ModalAjaxHelper extends Helper
             'container' => [
                 'class' => '',
             ],
-        ]
+        ],
+
+        'closeOnSuccess' => false,
+        'reloadPageOnSuccess' => false,
+        'reloadPageOnClose' => false,
     ];
 
     /**

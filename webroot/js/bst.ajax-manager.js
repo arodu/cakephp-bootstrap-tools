@@ -43,28 +43,31 @@ class FormAjaxManager extends BaseManager {
     }
 
     bindEvents() {
-        // Adjuntar evento al formulario, no al contenedor
-        this.form.addEventListener('submit', this.boundHandleSubmit);
+        if (this.form) {
+            this.form.addEventListener('submit', this.boundHandleSubmit);
+        }
     }
 
     updateTarget(html) {
-        // Remover evento del formulario antiguo
         if (this.form) {
             this.form.removeEventListener('submit', this.boundHandleSubmit);
         }
         this.config.target.innerHTML = html;
         this.form = this.config.target.querySelector('form');
-        // Adjuntar evento al nuevo formulario
+        if (!this.form) {
+            console.warn('Nuevo HTML no contiene un formulario');
+        }
+
         this.bindEvents();
     }
 
     async handleSubmit(event) {
         event.preventDefault();
-
         this.dispatchEvent('formAjaxSubmit', { form: this.form });
+        let response;
 
         try {
-            const response = await fetch(this.form.action, {
+            response = await fetch(this.form.action, {
                 method: this.form.method,
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
@@ -127,8 +130,9 @@ class FormAjaxManager extends BaseManager {
     }
 
     handleError(error) {
-        console.error('Form Error:', error);
-        this.config.target.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+        const message = error.message || 'Error al procesar la solicitud';
+        console.error('Form Error:', message);
+        this.config.target.innerHTML = `<div class="alert alert-danger">${message}</div>`;    
     }
 }
 
@@ -141,6 +145,7 @@ class ModalAjaxManager extends BaseManager {
                 title: '.modal-title',
                 body: '.modal-body',
                 closeOnSuccess: false,
+                reloadPageOnSuccess: false,
                 reloadPageOnClose: false,
             },
             form: {
