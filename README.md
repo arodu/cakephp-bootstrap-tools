@@ -11,4 +11,5 @@ composer require arodu/cakephp-bootstrap-tools
 ```
 
 ----
-[© arodu 2025](https://github.com/arodu) 
+
+Copyright (c) 2025 [arodu](https://github.com/arodu) 
