@@ -141,7 +141,7 @@ class ModalAjaxManager extends BaseManager {
                 title: '.modal-title',
                 body: '.modal-body',
                 closeOnSuccess: false,
-                reloadOnClose: false,
+                reloadPageOnClose: false,
             },
             form: {
                 autoRender: true,
@@ -160,6 +160,7 @@ class ModalAjaxManager extends BaseManager {
             title: this.modal.querySelector(this.config.modal.title).innerHTML,
             html: this.modal.querySelector(this.config.modal.body).innerHTML
         };
+        this.shouldReloadPageOnClose = false;
 
         this.init();
     }
@@ -170,8 +171,15 @@ class ModalAjaxManager extends BaseManager {
 
     bindEvents() {
         this.modal.addEventListener('show.bs.modal', e => {
+            this.shouldReloadPageOnClose = false;
             const url = e.relatedTarget?.dataset?.url;
             if (url) this.loadContent(url);
+        });
+
+        this.modal.addEventListener('hidden.bs.modal', () => {
+            if (this.config.modal.reloadPageOnClose && this.shouldReloadPageOnClose) {
+                window.location.reload();
+            }
         });
     }
 
@@ -230,7 +238,9 @@ class ModalAjaxManager extends BaseManager {
                 target: modalBody,
                 autoRender: this.config.form.autoRender,
                 csrfToken: this.config.csrfToken,
-                onSuccess: () => {
+                onSuccess: (result) => {
+                    this.shouldReloadPageOnClose = true;
+
                     if (this.config.modal.closeOnSuccess) {
                         const modalInstance = bootstrap.Modal.getInstance(this.modal);
                         if (modalInstance) modalInstance.hide();
