@@ -11,20 +11,17 @@ use BootstrapTools\View\Helper\MenuHelper;
 use Cake\Http\ServerRequest;
 
 return [
-    'menu' => [
+    'Menu' => [
         [
             'label' => __('Menu'),
             'type' => MenuHelper::ITEM_TYPE_TITLE
         ],
         [
-            'label' => __('Dashboard'),
-            'url' => [
-                'controller' => __('Projects'),
-                'action' => 'index',
-            ],
+            'label' => __('Home'),
+            'url' => '/',
             'icon' => 'bi bi-grid-fill',
-            'active' => function (ServerRequest $request = null) {
-                return $request->getParam('controller') === 'Projects';
+            'active' => function (ServerRequest $request) {
+                return true;
             }
         ],
     ],

@@ -35,6 +35,9 @@ class MenuHelper extends Helper
      * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
+        'configFile' => 'BootstrapTools.menu',
+        'configKey' => 'Menu',
+
         'name' => 'Menu',
         'menuClass' => 'nav',
         'dropdownClass' => 'dropdown',
@@ -106,6 +109,24 @@ class MenuHelper extends Helper
         if (!empty($actives[$menu])) {
             $this->activeItem($actives[$menu]);
         }
+    }
+
+    /**
+     * Returns the menu items from a configuration file.
+     * 
+     * options:
+     * - configFile: The configuration file to load.
+     * - configKey: The key in the configuration file to use for menu items.
+     *
+     * @param array $options Configuration options for loading the menu.
+     * @return array The menu items.
+     */
+    public function menuFromFile(array $options = []): array
+    {
+        $options = Hash::merge($this->getConfig(), $options);
+        Configure::load($options['configFile'], 'default', false);
+
+        return Configure::read($options['configKey'], []);
     }
 
     /**
@@ -358,7 +379,7 @@ class MenuHelper extends Helper
             return false;
         }
 
-        if (isset($item['show']) && is_callable($item['show']) && !$item['show']($item, $this->getView()->getRequest())) {
+        if (isset($item['show']) && is_callable($item['show']) && !$item['show']($this->getView()->getRequest())) {
             return false;
         }
 
@@ -377,7 +398,7 @@ class MenuHelper extends Helper
             return true;
         }
 
-        if (isset($item['disabled']) && is_callable($item['disabled']) && $item['disabled']($item, $this->getView()->getRequest())) {
+        if (isset($item['disabled']) && is_callable($item['disabled']) && $item['disabled']($this->getView()->getRequest())) {
             return true;
         }
 
@@ -397,7 +418,7 @@ class MenuHelper extends Helper
             return true;
         }
 
-        if (isset($item['active']) && is_callable($item['active']) && $item['active']($item, $this->getView()->getRequest())) {
+        if (isset($item['active']) && is_callable($item['active']) && $item['active']($this->getView()->getRequest())) {
             return true;
         }
 

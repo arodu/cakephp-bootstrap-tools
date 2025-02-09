@@ -38,12 +38,12 @@ class BootstrapToolsPlugin extends BasePlugin
     public function bootstrap(PluginApplicationInterface $app): void
     {
         $config = Configure::read('BootstrapTools');
-        Configure::write('BootstrapTools', Hash::merge([
-            'menu' => [
-                'default' => 'Menu',
-                'key' => 'activeMenuItem',
-            ],
-        ], $config));
+        //Configure::write('BootstrapTools', Hash::merge([
+        //    'menu' => [
+        //        'default' => 'Menu',
+        //        'key' => 'activeMenuItem',
+        //    ],
+        //], $config));
     }
 
     /**
