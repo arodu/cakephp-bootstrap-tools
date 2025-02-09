@@ -117,7 +117,7 @@ class ActionItemsHelper extends Helper
             $output .= $this->renderItem($item, $options);
         }
 
-        if ($options['reset'] ?? false) {
+        if ($options['reset'] ?? true) {
             $this->deleteScopeData($scope);
         }
 
