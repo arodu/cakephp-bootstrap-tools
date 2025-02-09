@@ -22,7 +22,6 @@ trait ThemeSettingsTrait
      *         'appName' => 'BootstrapTheme Demo',
      *         'appLogo' => 'BootstrapTools./logo.png',
      *     ],
-     *     'autoRenderAssets' => false,
      *     'meta' => [],
      *     'css' => [],
      *     'scripts' => [],
@@ -69,28 +68,49 @@ trait ThemeSettingsTrait
     }
 
     /**
-     * @param array $options
-     * @return void
+     * Render meta tags
+     * 
+     * @return string
      */
-    public function renderAssets(array $options = [])
+    public function renderMeta(): string
     {
-        $options = Hash::merge($this->getConfig(), $options);
-        foreach ($options['meta'] ?? [] as $name => $content) {
-            $this->getView()->Html->meta($name, $content, ['block' => true]);
+        $meta = $this->getConfig('meta') ?? [];
+        $output = '';
+        foreach ($meta as $name => $content) {
+            $output .= $this->getView()->Html->meta($name, $content);
         }
-        $this->getView()->Html->css($options['css'] ?? [], ['block' => true]);
-        $this->getView()->Html->script($options['scripts'] ?? [], ['block' => true]);
+        return $output;
     }
 
     /**
-     * @param EventInterface $event
-     * @param string $layoutFile
-     * @return void
+     * Render CSS files
+     * 
+     * @param array<string, mixed> $options
+     * @return string
      */
-    public function beforeLayout(EventInterface $event, $layoutFile): void
+    public function renderCss(array $options = []): string
     {
-        if ($this->getConfig('autoRenderAssets') ?? false) {
-            $this->renderAssets();
+        $css = $this->getConfig('css') ?? [];
+        $output = '';
+        foreach ($css as $file) {
+            $output .= $this->getView()->Html->css($file, $options);
         }
+        return $output;
+    }
+
+    /**
+     * Render scripts
+     * 
+     * @param array<string, mixed> $options
+     * @return string
+     */
+    public function renderScripts(array $options = []): string
+    {
+        $scripts = $this->getConfig('scripts') ?? [];
+        $output = '';
+        foreach ($scripts as $file) {
+            $output .= $this->getView()->Html->script($file, $options);
+        }
+        return $output;
     }
 }
