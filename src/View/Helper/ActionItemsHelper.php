@@ -119,6 +119,7 @@ class ActionItemsHelper extends Helper
 
         if ($options['reset'] ?? true) {
             $this->deleteScopeData($scope);
+            unset($this->options[$scope]);
         }
 
         if ($options['group'] ?? $this->getConfig('defaultGroup') ?? false) {
