@@ -29,6 +29,8 @@ class MenuHelper extends Helper
     const ITEM_TYPE_DIVIDER = 'divider';
     const ITEM_TYPE_TITLE = 'title';
 
+    const ACTIVE_ITEM_KEY = 'activeItem';
+
     /**
      * Default configuration.
      *
@@ -37,6 +39,7 @@ class MenuHelper extends Helper
     protected array $_defaultConfig = [
         'configFile' => 'BootstrapTools.menu',
         'configKey' => 'Menu',
+        'activeItemKey' => self::ACTIVE_ITEM_KEY,
 
         'name' => 'Menu',
         'menuClass' => 'nav',
@@ -102,12 +105,11 @@ class MenuHelper extends Helper
     public function initialize(array $config): void
     {
         parent::initialize($config);
-        $bstConfig = Configure::read('BootstrapTools.menu');
-        $menu = $config['name'] ?? 'Menu';
-        $actives = $this->getView()->get($bstConfig['key'] ?? 'activeMenuItem', []);
+        $activeKey = $this->getConfig('name', 'Menu') . '.' . $this->getConfig('activeItemKey', self::ACTIVE_ITEM_KEY);
+        $activeItem = $this->getView()->get($activeKey);
 
-        if (!empty($actives[$menu])) {
-            $this->activeItem($actives[$menu]);
+        if (!is_null($activeItem)) {
+            $this->activeItem($activeItem);
         }
     }
 

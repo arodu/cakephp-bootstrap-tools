@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace BootstrapTools\Controller\Component;
 
+use BootstrapTools\View\Helper\MenuHelper;
 use Cake\Controller\Component;
 
 /**
@@ -18,7 +19,7 @@ class MenuComponent extends Component
      */
     protected array $_defaultConfig = [
         'menuKey' => 'Menu',
-        'activeItemKey' => 'activeItem',
+        'activeItemKey' => MenuHelper::ACTIVE_ITEM_KEY,
     ];
 
 
