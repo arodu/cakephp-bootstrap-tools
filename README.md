@@ -10,6 +10,5 @@ The recommended way to install composer packages is:
 composer require arodu/cakephp-bootstrap-tools
 ```
 
-----
-
-Copyright (c) 2025 [arodu](https://github.com/arodu) 
+---
+[© 2025 arodu](https://github.com/arodu) 
