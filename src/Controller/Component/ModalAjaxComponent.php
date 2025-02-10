@@ -6,11 +6,9 @@ namespace BootstrapTools\Controller\Component;
 
 use BootstrapTools\Http\JsonResponse;
 use Cake\Controller\Component;
-use Cake\Controller\ComponentRegistry;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
-use Cake\Log\Log;
-use Cake\Routing\Router;
+use Cake\Utility\Hash;
 
 /**
  * ModalAjax component
@@ -31,6 +29,15 @@ class ModalAjaxComponent extends Component
         'modalSuccessKey' => 'X-Modal-Ajax-Success',
     ];
 
+    /**
+     * @var array
+     */
+    protected array $options = [];
+
+    /**
+     * @param array $config
+     * @return void
+     */
     public function initialize(array $config): void
     {
         $controller = $this->getController();
@@ -41,50 +48,75 @@ class ModalAjaxComponent extends Component
 
     public function beforeRender(EventInterface $event): void
     {
-        $controller = $this->getController();
-        $controller->set('modalSuccessKey', $this->getConfig('modalSuccessKey'));
+        $event->setResult($this->success());
     }
 
-    public function send(bool $success, string $message = null, array $data = [], array $meta = [], int $status = 200): Response
+    /**
+     * @param array $options
+     * @return self
+     */
+    public function setOptions(array $options): self
     {
-        if ($this->getConfig('strategy') === self::STRATEGY_HTML) {
-            return $this->handleHtmlResponse(
-                success: $success,
-                message: $message ?? 'Operation successful.',
-                data: $data,
-                meta: $meta,
-                status: $status
-            );
-        }
+        $this->options = Hash::merge($this->options, $options);
 
-        if ($this->getConfig('strategy') === self::STRATEGY_JSON) {
-            return $this->handleJsonResponse(
-                success: $success,
-                message: $message ?? 'Operation successful.',
-                data: $data,
-                meta: $meta,
-                status: $status
-            );
-        }
-
-        throw new \RuntimeException('Invalid strategy');
+        return $this;
     }
 
-
-    public function success(string $message = null, array $data = [], array $meta = [], int $status = 200): Response
+    /**
+     * @param boolean $success
+     * @param array $options
+     * @return Response
+     */
+    public function send(bool $success, array $options = []): Response
     {
-        return $this->send(true, $message, $data, $meta, $status);
+        $options = Hash::merge($this->options, $options);
+        $options['success'] = $success;
+        $this->options = [];
+
+        return match($this->getConfig('strategy')) {
+            self::STRATEGY_HTML => $this->handleHtmlResponse($options),
+            self::STRATEGY_JSON => $this->handleJsonResponse($options),
+            default => throw new \RuntimeException('Invalid strategy'),
+        };
     }
 
-    public function error(string $message = null, array $data = [], array $meta = [], int $status = 400): Response
+    /**
+     * @param string|null $message
+     * @param array $options
+     * @return Response
+     */
+    public function success(string $message = null, array $options = []): Response
     {
-        return $this->send(false, $message, $data, $meta, $status);
+        $options['message'] = $message ?? __('Operation successful.');
+        $options['status'] ??= 200;
+
+        return $this->send(true, $options);
     }
 
-    protected function handleHtmlResponse(bool $success, string $message, array $data = [], array $meta = [], int $status = 200): Response
+    /**
+     * @param string|null $message
+     * @param array $options
+     * @return Response
+     */
+    public function error(string $message = null, array $options = []): Response
+    {
+        $options['message'] = $message ?? __('An error occurred.');
+        $options['status'] ??= 400;
+
+        return $this->send(false, $options);
+    }
+
+    /**
+     * @param array $options
+     * @return Response
+     */
+    protected function handleHtmlResponse(array $options = []): Response
     {
         $controller = $this->getController();
         $response = $controller->getResponse();
+
+        $status = $options['status'] ?? $response->getStatusCode();
+        $success = $options['success'] ?? true;
 
         return $response
             ->withStatus($status)
@@ -92,26 +124,31 @@ class ModalAjaxComponent extends Component
             ->withHeader($this->getConfig('modalSuccessKey'), $success ? '1' : '0');
     }
 
-    protected function handleJsonResponse(bool $success, string $message, array $data = [], array $meta = [], int $status = 200): Response
+    /**
+     * @param array $options
+     * @return Response
+     */
+    protected function handleJsonResponse(array $options = []): Response
     {
         $controller = $this->getController();
-        try {
-            $html = (string) $this->getController()->render()->getBody();
-        } catch (\Exception $e) {
-            Log::error("HTML Render Error: {$e->getMessage()}");
+        $response = $controller->getResponse();
 
-            throw $e;
-        }
+        $options = Hash::merge([
+            'status' => $response->getStatusCode(),
+            'success' => true,
+            'message' => __('Operation successful.'),
+            'data' => null,
+            'meta' => null,
+            'html' => (string) $controller->render()->getBody(),
+        ], $this->options, $options);
 
-        $jsonResponse = new JsonResponse($controller->getResponse());
-
-        return $jsonResponse
-            ->success($success)
-            ->status($status)
-            ->message($message)
-            ->data($data)
-            ->meta($meta)
-            ->html($html)
+        return JsonResponse::create($response)
+            ->success($options['success'])
+            ->status($options['status'])
+            ->message($options['message'])
+            ->data($options['data'])
+            ->meta($options['meta'])
+            ->html($options['html'])
             ->build();
     }
 }
