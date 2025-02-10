@@ -22,17 +22,6 @@ class BsHelper extends Helper
      * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
-        //'label' => true,
-        //'icon' => false,
-        //'color' => 'secondary',
-        //'tooltip' => false,
-
-        'bagde' => [
-            'color' => 'secondary',
-            'pill' => false,
-            'tooltip' => false,
-        ],
-
         'templates' => [
             'badge' => '<span class="{{class}}" aria-label="{{aria-label}}"{{attrs}}>{{icon}}{{label}}</span>',
             'button' => '<a href="{{url}}" class="{{class}}"{{attrs}}>{{icon}}{{label}}</a>',
@@ -122,7 +111,13 @@ class BsHelper extends Helper
 
         $icon = $this->renderIcon($visualElement, $options);
 
-        return $this->Html->tag('span', $icon . $visualElement->getLabel(), $options);
+        return $this->formatTemplate('text', [
+            'class' => $options['class'],
+            'aria-label' => $options['title'],
+            'icon' => $icon,
+            'label' => $visualElement->getLabel(),
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
+        ]);
     }
 
     /**
@@ -141,7 +136,7 @@ class BsHelper extends Helper
 
         $closeButton = '';
         if (isset($options['dismissible']) && $options['dismissible']) {
-            $closeButton = $this->Html->tag('button', null, [
+            $closeButton = $this->getView()->Html->tag('button', null, [
                 'type' => 'button',
                 'class' => 'btn-close',
                 'data-bs-dismiss' => 'alert',
@@ -149,13 +144,26 @@ class BsHelper extends Helper
             ]);
         }
 
-        $header = $this->Html->tag('h4', $icon . $visualElement->getLabel(), ['class' => 'alert-heading']);
-        $content = $this->Html->tag('p', $visualElement->getDescription(), ['class' => 'mb-0']);
-
-        return $this->Html->tag('div', $closeButton . $header . $content, $options);
+        return $this->formatTemplate('alert', [
+            'class' => $options['class'],
+            'aria-label' => $options['title'],
+            'closeButton' => $closeButton,
+            'icon' => $icon,
+            'label' => $visualElement->getLabel(),
+            'content' => $visualElement->getDescription(),
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label', 'content']),
+        ]);
     }
 
     /**
+     * Generates a Bootstrap-styled icon element.
+     * 
+     * visualElement options:
+     * - `label` (string): The text to be displayed inside the icon.
+     * - `icon` (string): The icon to be displayed.
+     * - `color` (string): The color of the icon.
+     * - `description` (string): A description used as a tooltip or additional information.
+     * 
      * @param VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
