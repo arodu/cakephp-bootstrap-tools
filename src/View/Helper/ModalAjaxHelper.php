@@ -20,7 +20,7 @@ class ModalAjaxHelper extends Helper
     protected array $_defaultConfig = [
         'target' => 'ajax-modal',
         'element' => 'BootstrapTools.modalAjax/default',
-        'script' => 'BootstrapTools./js/bst.ajax-manager',
+        'script' => 'BootstrapTools./js/bst-ajax-manager',
         'jsCallback' => false, // 'function (event, detail) { console.log(detail); }',
 
         'modalOptions' => [

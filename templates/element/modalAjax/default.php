@@ -7,7 +7,7 @@
  * @var string|null $jsCallback
  */
 $target ??= 'ajax-modal';
-$script ??= 'BootstrapTools./js/bst.ajax-manager';
+$script ??= 'BootstrapTools./js/bst-ajax-manager';
 $jsCallback ??= null;
 
 $modalOptions ??= [];
