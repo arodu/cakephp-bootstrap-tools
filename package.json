@@ -21,5 +21,9 @@
     "terser": "^5.38.2",
     "vite": "^6.1.0",
     "vite-plugin-minify": "^2.1.0"
+  },
+  "dependencies": {
+    "postcss": "^8.5.2",
+    "rollup-plugin-postcss": "^4.0.2"
   }
 }

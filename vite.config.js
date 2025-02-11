@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import path from 'path';
 import terser from '@rollup/plugin-terser';
+import postcss from 'rollup-plugin-postcss'
+
 
 export default defineConfig({
     root: './',
@@ -30,10 +32,13 @@ export default defineConfig({
                     format: 'es',
                     plugins: [
                         terser(),
+                        postcss({
+                            plugins: []
+                        }),
                     ]
                 }
             ],
-            
+
         }
     }
 });
