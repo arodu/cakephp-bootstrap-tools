@@ -1,0 +1,1 @@
+import './bst-ajax-manager.js';
