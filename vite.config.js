@@ -1,45 +1,40 @@
 import { defineConfig } from 'vite';
 import path from 'path';
+import terser from '@rollup/plugin-terser'; // Plugin de minificación para JavaScript
 
 export default defineConfig({
-    root: './', // Carpeta raíz del proyecto
+    root: './',
     build: {
-        outDir: 'webroot', // Carpeta donde se guardarán los archivos compilados
-        emptyOutDir: true, // Limpia la carpeta de salida antes de compilar
+        outDir: 'webroot',
+        emptyOutDir: true,
+        minify: true,
         rollupOptions: {
             input: {
-                mainJs: path.resolve(__dirname, 'resources/scripts/main.js'),
-                mainCss: path.resolve(__dirname, 'resources/styles/main.scss')
+                'bst-script': path.resolve(__dirname, 'resources/scripts/main.js'),
+                'bst-style': path.resolve(__dirname, 'resources/styles/main.scss')
             },
             output: [
-                // Salida sin minificar
                 {
+                    // Salida sin minificar
                     dir: 'webroot',
-                    entryFileNames: 'js/[name].js',       // Archivo sin minificar
-                    assetFileNames: 'css/[name].css',    // Archivo sin minificar
-                    chunkFileNames: 'js/[name].js',      // Archivo sin minificar
+                    entryFileNames: 'js/[name].js',
+                    assetFileNames: 'css/[name][extname]', // unified naming pattern
+                    chunkFileNames: 'js/[name].js',
                     format: 'es',
-                    plugins: [] // No aplicar ningún plugin de minificación
+                    plugins: []
                 },
-                // Salida minificada
                 {
+                    // Salida minificada
                     dir: 'webroot',
-                    entryFileNames: 'js/[name].min.js',  // Archivo minificado
-                    assetFileNames: 'css/[name].min.css',// Archivo minificado
-                    chunkFileNames: 'js/[name].min.js', // Archivo minificado
+                    entryFileNames: 'js/[name].min.js',
+                    assetFileNames: 'css/[name].min[extname]', // unified naming pattern
+                    chunkFileNames: 'js/[name].min.js',
                     format: 'es',
                     plugins: [
-                        {
-                            name: 'minify',
-                            renderChunk(code) {
-                                // Aquí puedes usar Terser u otro minificador
-                                return code; // Por defecto, Rollup ya minifica en producción
-                            }
-                        }
+                        terser(),
                     ]
-
                 }
-            ]
+            ],
         }
     }
 });

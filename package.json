@@ -16,6 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "sass": "^1.84.0",
+    "terser": "^5.38.2",
     "vite": "^6.1.0"
   }
 }
