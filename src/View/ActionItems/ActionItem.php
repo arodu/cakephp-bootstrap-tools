@@ -8,19 +8,19 @@ use Cake\Utility\Hash;
 
 class ActionItem implements ActionItemInterface
 {
-    const Default = 'default';
-    const Index = 'index';
-    const Add = 'add';
-    const Edit = 'edit';
-    const Delete = 'delete';
-    const View = 'view';
-    const LimitControl = 'limit_control';
-    const Submit = 'submit';
-    const Cancel = 'cancel';
-    const CloseModal = 'close_modal';
-    const AjaxSubmit = 'ajax_submit';
-    const Button = 'button';
-    const Reset = 'reset';
+    const DEFAULT = 'default';
+    const INDEX = 'index';
+    const ADD = 'add';
+    const EDIT = 'edit';
+    const DELETE = 'delete';
+    const VIEW = 'view';
+    const LIMIT_CONTROL = 'limit_control';
+    const SUBMIT = 'submit';
+    const CANCEL = 'cancel';
+    const CLOSE_MODAL = 'close_modal';
+    const AJAX_SUBMIT = 'ajax_submit';
+    const BUTTON = 'button';
+    const RESET = 'reset';
 
     protected static array $registry = [];
 
@@ -101,35 +101,35 @@ class ActionItem implements ActionItemInterface
     protected static function defaultOptions(string $key): array
     {
         return match ($key) {
-            static::Index => [
+            static::INDEX => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'index'],
                 'label' => __('List'),
                 'icon' => 'bi bi-list me-1',
                 'color' => 'light',
             ],
-            static::View => [
+            static::VIEW => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'view'],
                 'label' => __('View'),
                 'icon' => 'bi bi-eye me-1',
                 'color' => 'info',
             ],
-            static::Add => [
+            static::ADD => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'add'],
                 'label' => __('Add'),
                 'icon' => 'bi bi-plus me-1',
                 'color' => 'success',
             ],
-            static::Edit => [
+            static::EDIT => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'edit'],
                 'label' => __('Edit'),
                 'icon' => 'bi bi-pencil me-1',
                 'color' => 'warning',
             ],
-            static::Delete => [
+            static::DELETE => [
                 'type' => ActionType::PostLink,
                 'url' => ['action' => 'delete'],
                 'label' => __('Delete'),
@@ -137,13 +137,13 @@ class ActionItem implements ActionItemInterface
                 'color' => 'danger',
                 'confirm' => __('Are you sure you want to delete this item?'),
             ],
-            static::Cancel => [
+            static::CANCEL => [
                 'type' => ActionType::Link,
                 'url' => ['action' => 'index'],
                 'label' => __('Cancel'),
                 'color' => 'secondary',
             ],
-            static::CloseModal => [
+            static::CLOSE_MODAL => [
                 'type' => ActionType::Link,
                 'url' => '#',
                 'data-bs-dismiss' => 'modal',
@@ -151,7 +151,7 @@ class ActionItem implements ActionItemInterface
                 'label' => __('Close'),
                 'color' => 'secondary',
             ],
-            static::LimitControl => [
+            static::LIMIT_CONTROL => [
                 'type' => ActionType::LimitControl,
                 'limits' => [],
                 'default' => null,
@@ -160,7 +160,7 @@ class ActionItem implements ActionItemInterface
                     'spacing' => 'mb-0',
                 ],
             ],
-            static::Submit => [
+            static::SUBMIT => [
                 'type' => ActionType::Button,
                 'label' => __('Submit'),
                 'icon' => 'bi bi-check me-1',
@@ -171,7 +171,7 @@ class ActionItem implements ActionItemInterface
                     'escapeTitle' => false,
                 ],
             ],
-            static::Button => [
+            static::BUTTON => [
                 'type' => ActionType::Button,
                 'label' => __('Button'),
                 'icon' => 'bi bi-check me-1',
@@ -181,7 +181,7 @@ class ActionItem implements ActionItemInterface
                     'escapeTitle' => false,
                 ],
             ],
-            static::Reset => [
+            static::RESET => [
                 'type' => ActionType::Button,
                 'label' => __('Reset'),
                 'icon' => 'bi bi-check me-1',
@@ -191,7 +191,7 @@ class ActionItem implements ActionItemInterface
                     'escapeTitle' => false,
                 ],
             ],
-            static::AjaxSubmit => [
+            static::AJAX_SUBMIT => [
                 'type' => ActionType::Button,
                 'label' => __('Submit'),
                 'icon' => 'bi bi-check me-1',
