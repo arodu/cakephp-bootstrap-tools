@@ -1,1 +1,238 @@
-class i{static mergeConfig(t,e){return{...t,...e}}executeScripts(t){t.querySelectorAll("script").forEach(e=>{const o=document.createElement("script");o.textContent=e.textContent,e.parentNode.replaceChild(o,e)})}dispatchEvent(t,e){document.dispatchEvent(new CustomEvent(t,{detail:e}))}}class n extends i{constructor(t,e={}){super();const o={autoRender:!0,target:t.closest(".form-container")||document.body,csrfToken:null,onSuccess:null,onError:null};typeof o.target=="string"&&(o.target=document.querySelector(o.target)),this.config=i.mergeConfig(o,e),this.form=t,this.boundHandleSubmit=this.handleSubmit.bind(this),this.init()}init(){this.bindEvents()}bindEvents(){this.form&&this.form.addEventListener("submit",this.boundHandleSubmit)}updateTarget(t){this.form&&this.form.removeEventListener("submit",this.boundHandleSubmit),this.config.target.innerHTML=t,this.form=this.config.target.querySelector("form"),this.form||console.warn("New HTML does not contain a form"),this.bindEvents()}async handleSubmit(t){t.preventDefault(),this.dispatchEvent("formAjaxSubmit",{form:this.form});let e;try{e=await fetch(this.form.action,{method:this.form.method,headers:{"X-Requested-With":"XMLHttpRequest",Accept:"application/json, text/html, text/plain","X-CSRF-Token":this.config.csrfToken},body:new FormData(this.form)});const o=await this.processResponse(e);this.config.autoRender&&(this.updateTarget(o.html),this.executeScripts(this.config.target)),this.dispatchEvent("formAjaxSuccess",{data:o,form:this.form,target:this.config.target,response:e}),this.config.onSuccess&&this.config.onSuccess(o)}catch(o){this.handleError(o),this.dispatchEvent("formAjaxError",{error:o.message,form:this.form,target:this.config.target,response:e}),this.config.onError&&this.config.onError(o)}}async processResponse(t){const e=t.headers.get("Content-Type")||"";let o={html:"",success:t.ok};if(!t.ok)throw new Error(`HTTP Error ${t.status}: ${t.statusText}`);if(e.includes("application/json")){const s=await t.json();o.html=s.html||"",o.success=s.success||!1}else e.includes("text/html")&&(o.html=await t.text());return o}handleError(t){const e=t.message||"Error processing request";console.error("Form Error:",e),this.config.target.innerHTML=`<div class="alert alert-danger">${e}</div>`}}class r extends i{constructor(t){super();const e={target:"ajax-modal",modal:{title:".modal-title",body:".modal-body",closeOnSuccess:!1,reloadPageOnSuccess:!1,reloadPageOnClose:!1},form:{autoRender:!0,overwriteOnLoading:!1},csrfToken:null};let o=i.mergeConfig(e,t);o.modal={...e.modal,...t.modal||{}},o.form={...e.form,...t.form||{}},this.config=o,this.modal=document.getElementById(this.config.target),this.loading={title:this.modal.querySelector(this.config.modal.title).innerHTML,html:this.modal.querySelector(this.config.modal.body).innerHTML},this.shouldReloadPageOnClose=!1,this.init()}init(){this.bindEvents()}bindEvents(){this.modal.addEventListener("show.bs.modal",t=>{var o,s;this.shouldReloadPageOnClose=!1;const e=(s=(o=t.relatedTarget)==null?void 0:o.dataset)==null?void 0:s.url;e&&this.loadContent(e)}),this.modal.addEventListener("hidden.bs.modal",()=>{this.config.modal.reloadPageOnClose&&this.shouldReloadPageOnClose&&window.location.reload()})}async loadContent(t){try{this.dispatchEvent("modalAjaxLoad",{url:t,modal:this.modal}),this.startLoading();const e=await fetch(t,{headers:{"X-Requested-With":"XMLHttpRequest"}}),o=await this.processResponse(e);this.stopLoading(),this.updateModal(o),this.attachForms(),this.dispatchEvent("modalAjaxLoaded",{data:o,modal:this.modal})}catch(e){this.handleError(e)}}async processResponse(t){const e=t.headers.get("Content-Type");let o={title:"",html:""};if(e.includes("application/json")){const s=await t.json();o={...o,...s}}else e.includes("text/html")&&(o.html=await t.text(),o.title=t.headers.get("X-Modal-Title")||this.extractTitle(o.html)||this.config.title);return o}updateModal({title:t,html:e}){this.modal.querySelector(this.config.modal.title).innerHTML=t;const o=this.modal.querySelector(this.config.modal.body);o.innerHTML=e,this.executeScripts(o)}attachForms(){const t=this.modal.querySelector(this.config.modal.body);t.querySelectorAll("form").forEach(e=>{new n(e,{target:t,autoRender:this.config.form.autoRender,csrfToken:this.config.csrfToken,onSuccess:o=>{if(this.shouldReloadPageOnClose=!0,this.config.modal.closeOnSuccess){const s=bootstrap.Modal.getInstance(this.modal);s&&s.hide()}}})})}startLoading(){this.modal.classList.add("loading"),this.config.form.overwriteOnLoading&&(this.modal.querySelector(this.config.modal.title).innerHTML=this.loading.title,this.modal.querySelector(this.config.modal.body).innerHTML=this.loading.html)}stopLoading(){this.modal.classList.remove("loading")}extractTitle(t){const e=t.match(/<h1[^>]*>(.*?)<\/h1>/i);return e?e[1]:null}handleError(t){console.error("Modal Error:",t),this.updateModal({title:"Error",html:`<p>${t.message}</p>`})}}window.FormAjaxManager=n;window.ModalAjaxManager=r;
+class BaseManager {
+  static mergeConfig(defaults, config) {
+    return { ...defaults, ...config };
+  }
+  executeScripts(container) {
+    container.querySelectorAll("script").forEach((oldScript) => {
+      const newScript = document.createElement("script");
+      newScript.textContent = oldScript.textContent;
+      oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+  }
+  dispatchEvent(name, detail) {
+    document.dispatchEvent(new CustomEvent(name, { detail }));
+  }
+}
+class FormAjaxManager extends BaseManager {
+  constructor(formElement, config = {}) {
+    super();
+    const defaultConfig = {
+      autoRender: true,
+      target: formElement.closest(".form-container") || document.body,
+      csrfToken: null,
+      onSuccess: null,
+      onError: null
+    };
+    if (typeof defaultConfig.target === "string") {
+      defaultConfig.target = document.querySelector(defaultConfig.target);
+    }
+    this.config = BaseManager.mergeConfig(defaultConfig, config);
+    this.form = formElement;
+    this.boundHandleSubmit = this.handleSubmit.bind(this);
+    this.init();
+  }
+  init() {
+    this.bindEvents();
+  }
+  bindEvents() {
+    if (this.form) {
+      this.form.addEventListener("submit", this.boundHandleSubmit);
+    }
+  }
+  updateTarget(html) {
+    if (this.form) {
+      this.form.removeEventListener("submit", this.boundHandleSubmit);
+    }
+    this.config.target.innerHTML = html;
+    this.form = this.config.target.querySelector("form");
+    if (!this.form) {
+      console.warn("New HTML does not contain a form");
+    }
+    this.bindEvents();
+  }
+  async handleSubmit(event) {
+    event.preventDefault();
+    this.dispatchEvent("formAjaxSubmit", { form: this.form });
+    let response;
+    try {
+      response = await fetch(this.form.action, {
+        method: this.form.method,
+        headers: {
+          "X-Requested-With": "XMLHttpRequest",
+          "Accept": "application/json, text/html, text/plain",
+          "X-CSRF-Token": this.config.csrfToken
+        },
+        body: new FormData(this.form)
+      });
+      const result = await this.processResponse(response);
+      if (this.config.autoRender) {
+        this.updateTarget(result.html);
+        this.executeScripts(this.config.target);
+      }
+      this.dispatchEvent("formAjaxSuccess", {
+        data: result,
+        form: this.form,
+        target: this.config.target,
+        response
+      });
+      if (this.config.onSuccess) {
+        this.config.onSuccess(result);
+      }
+    } catch (error) {
+      this.handleError(error);
+      this.dispatchEvent("formAjaxError", {
+        error: error.message,
+        form: this.form,
+        target: this.config.target,
+        response
+      });
+      if (this.config.onError) {
+        this.config.onError(error);
+      }
+    }
+  }
+  async processResponse(response) {
+    const contentType = response.headers.get("Content-Type") || "";
+    let result = { html: "", success: response.ok };
+    if (!response.ok) {
+      throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+    }
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      result.html = data.html || "";
+      result.success = data.success || false;
+    } else if (contentType.includes("text/html")) {
+      result.html = await response.text();
+    }
+    return result;
+  }
+  handleError(error) {
+    const message = error.message || "Error processing request";
+    console.error("Form Error:", message);
+    this.config.target.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+  }
+}
+class ModalAjaxManager extends BaseManager {
+  constructor(config) {
+    super();
+    const defaultConfig = {
+      target: "ajax-modal",
+      modal: {
+        title: ".modal-title",
+        body: ".modal-body",
+        closeOnSuccess: false,
+        reloadPageOnSuccess: false,
+        reloadPageOnClose: false
+      },
+      form: {
+        autoRender: true,
+        overwriteOnLoading: false
+      },
+      csrfToken: null
+    };
+    let mergedConfig = BaseManager.mergeConfig(defaultConfig, config);
+    mergedConfig.modal = { ...defaultConfig.modal, ...config.modal || {} };
+    mergedConfig.form = { ...defaultConfig.form, ...config.form || {} };
+    this.config = mergedConfig;
+    this.modal = document.getElementById(this.config.target);
+    this.loading = {
+      title: this.modal.querySelector(this.config.modal.title).innerHTML,
+      html: this.modal.querySelector(this.config.modal.body).innerHTML
+    };
+    this.shouldReloadPageOnClose = false;
+    this.init();
+  }
+  init() {
+    this.bindEvents();
+  }
+  bindEvents() {
+    this.modal.addEventListener("show.bs.modal", (e) => {
+      var _a, _b;
+      this.shouldReloadPageOnClose = false;
+      const url = (_b = (_a = e.relatedTarget) == null ? void 0 : _a.dataset) == null ? void 0 : _b.url;
+      if (url) this.loadContent(url);
+    });
+    this.modal.addEventListener("hidden.bs.modal", () => {
+      if (this.config.modal.reloadPageOnClose && this.shouldReloadPageOnClose) {
+        window.location.reload();
+      }
+    });
+  }
+  async loadContent(url) {
+    try {
+      this.dispatchEvent("modalAjaxLoad", { url, modal: this.modal });
+      this.startLoading();
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      const result = await this.processResponse(response);
+      this.stopLoading();
+      this.updateModal(result);
+      this.attachForms();
+      this.dispatchEvent("modalAjaxLoaded", {
+        data: result,
+        modal: this.modal
+      });
+    } catch (error) {
+      this.handleError(error);
+    }
+  }
+  async processResponse(response) {
+    const contentType = response.headers.get("Content-Type");
+    let result = { title: "", html: "" };
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      result = { ...result, ...data };
+    } else if (contentType.includes("text/html")) {
+      result.html = await response.text();
+      result.title = response.headers.get("X-Modal-Title") || this.extractTitle(result.html) || this.config.title;
+    }
+    return result;
+  }
+  updateModal({ title, html }) {
+    this.modal.querySelector(this.config.modal.title).innerHTML = title;
+    const body = this.modal.querySelector(this.config.modal.body);
+    body.innerHTML = html;
+    this.executeScripts(body);
+  }
+  attachForms() {
+    const modalBody = this.modal.querySelector(this.config.modal.body);
+    modalBody.querySelectorAll("form").forEach((form) => {
+      new FormAjaxManager(form, {
+        target: modalBody,
+        autoRender: this.config.form.autoRender,
+        csrfToken: this.config.csrfToken,
+        onSuccess: (result) => {
+          this.shouldReloadPageOnClose = true;
+          if (this.config.modal.closeOnSuccess) {
+            const modalInstance = bootstrap.Modal.getInstance(this.modal);
+            if (modalInstance) modalInstance.hide();
+          }
+        }
+      });
+    });
+  }
+  startLoading() {
+    this.modal.classList.add("loading");
+    if (this.config.form.overwriteOnLoading) {
+      this.modal.querySelector(this.config.modal.title).innerHTML = this.loading.title;
+      this.modal.querySelector(this.config.modal.body).innerHTML = this.loading.html;
+    }
+  }
+  stopLoading() {
+    this.modal.classList.remove("loading");
+  }
+  extractTitle(html) {
+    const match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
+    return match ? match[1] : null;
+  }
+  handleError(error) {
+    console.error("Modal Error:", error);
+    this.updateModal({
+      title: "Error",
+      html: `<p>${error.message}</p>`
+    });
+  }
+}
+window.FormAjaxManager = FormAjaxManager;
+window.ModalAjaxManager = ModalAjaxManager;

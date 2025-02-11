@@ -8,4 +8,4 @@
  * @link        https://github.com/arodu/cakephp-bootstrap-tools
  */
 
-import './bst-ajax-manager.js';
+import './ajax-manager.js';

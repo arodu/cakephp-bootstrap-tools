@@ -1,13 +1,13 @@
 import { defineConfig } from 'vite';
 import path from 'path';
-import terser from '@rollup/plugin-terser'; // Plugin de minificación para JavaScript
+import terser from '@rollup/plugin-terser';
 
 export default defineConfig({
     root: './',
     build: {
         outDir: 'webroot',
         emptyOutDir: true,
-        minify: true,
+        minify: false,
         rollupOptions: {
             input: {
                 'bst-script': path.resolve(__dirname, 'resources/scripts/main.js'),
@@ -15,19 +15,17 @@ export default defineConfig({
             },
             output: [
                 {
-                    // Salida sin minificar
                     dir: 'webroot',
                     entryFileNames: 'js/[name].js',
-                    assetFileNames: 'css/[name][extname]', // unified naming pattern
+                    assetFileNames: 'css/[name][extname]',
                     chunkFileNames: 'js/[name].js',
                     format: 'es',
                     plugins: []
                 },
                 {
-                    // Salida minificada
                     dir: 'webroot',
                     entryFileNames: 'js/[name].min.js',
-                    assetFileNames: 'css/[name].min[extname]', // unified naming pattern
+                    assetFileNames: 'css/[name].min[extname]',
                     chunkFileNames: 'js/[name].min.js',
                     format: 'es',
                     plugins: [
@@ -35,6 +33,7 @@ export default defineConfig({
                     ]
                 }
             ],
+            
         }
     }
 });

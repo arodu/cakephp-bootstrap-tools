@@ -6,4 +6,109 @@
  * @copyright   2025 Alberto Rodriguez
  * @license     MIT
  * @link        https://github.com/arodu/cakephp-bootstrap-tools
- */:root{--stepper-indicator-size: 42px;--stepper-indicator-text-size: 1.2rem;--stepper-line-position: calc(var(--stepper-indicator-text-size) / 2);--stepper-indicator-transform: scale(1.1)}.stepper-container{width:100%;margin:1rem auto}.stepper{display:flex;justify-content:space-between;list-style:none;padding:0!important;margin:0!important}.stepper .stepper-item{flex:1;position:relative;display:flex;flex-direction:column;align-items:center}.stepper .stepper-item:before{content:"";position:absolute;top:var(--stepper-line-position);left:-50%;right:50%;height:2px;background-color:var(--bs-primary);z-index:1;transition:background-color .3s ease}.stepper .stepper-item:first-child:before{content:none}.stepper .stepper-item .stepper-link{text-decoration:none;color:inherit;display:block;width:auto;position:static}.stepper .stepper-item .stepper-link .stepper-link-content{position:relative;display:inline-block;z-index:2}.stepper .stepper-item .stepper-link .stepper-link-content .stepper-indicator{width:var(--stepper-indicator-size);height:var(--stepper-indicator-size);border-radius:50%;background-color:var(--bs-primary);display:flex;align-items:center;justify-content:center;margin:0 auto;color:var(--bs-white);font-size:var(--stepper-indicator-text-size);transition:all .3s cubic-bezier(.68,-.55,.265,1.55)}.stepper .stepper-item .stepper-link .stepper-link-content .stepper-indicator .bi:before{vertical-align:0}.stepper .stepper-item .stepper-link:hover .stepper-indicator{transform:var(--stepper-indicator-transform);box-shadow:0 0 10px #007bff66}.stepper .stepper-item .stepper-link:hover .stepper-label{font-weight:700}.stepper .stepper-item .stepper-label{margin-top:.5rem;transition:font-weight .2s ease}.stepper .stepper-item:not(.current):not(.completed):not(.disabled) .stepper-indicator{background-color:var(--bs-primary)}.stepper .stepper-item.current .stepper-indicator{transform:var(--stepper-indicator-transform);box-shadow:0 0 10px #007bff66}.stepper .stepper-item.current .stepper-label{font-weight:700}.stepper .stepper-item.completed .stepper-indicator{background-color:var(--bs-success)}.stepper .stepper-item.completed:before{background-color:var(--bs-success)}.stepper .stepper-item.disabled .stepper-indicator{background-color:var(--bs-secondary)}.stepper .stepper-item.disabled .stepper-link{pointer-events:none;color:var(--bs-secondary)}.stepper .stepper-item.disabled:before{background-color:var(--bs-secondary)}
+ */
+:root {
+  --stepper-indicator-size: 42px;
+  --stepper-indicator-text-size: 1.2rem;
+  --stepper-line-position: calc(var(--stepper-indicator-text-size) / 2);
+  --stepper-indicator-transform: scale(1.1);
+}
+
+.stepper-container {
+  width: 100%;
+  margin: 1rem auto;
+}
+
+.stepper {
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.stepper .stepper-item {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.stepper .stepper-item::before {
+  content: "";
+  position: absolute;
+  top: var(--stepper-line-position);
+  left: -50%;
+  right: 50%;
+  height: 2px;
+  background-color: var(--bs-primary);
+  z-index: 1;
+  transition: background-color 0.3s ease;
+}
+.stepper .stepper-item:first-child::before {
+  content: none;
+}
+.stepper .stepper-item .stepper-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  width: auto;
+  position: static;
+}
+.stepper .stepper-item .stepper-link .stepper-link-content {
+  position: relative;
+  display: inline-block;
+  z-index: 2;
+}
+.stepper .stepper-item .stepper-link .stepper-link-content .stepper-indicator {
+  width: var(--stepper-indicator-size);
+  height: var(--stepper-indicator-size);
+  border-radius: 50%;
+  background-color: var(--bs-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  color: var(--bs-white);
+  font-size: var(--stepper-indicator-text-size);
+  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+.stepper .stepper-item .stepper-link .stepper-link-content .stepper-indicator .bi::before {
+  vertical-align: 0;
+}
+.stepper .stepper-item .stepper-link:hover .stepper-indicator {
+  transform: var(--stepper-indicator-transform);
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
+}
+.stepper .stepper-item .stepper-link:hover .stepper-label {
+  font-weight: bold;
+}
+.stepper .stepper-item .stepper-label {
+  margin-top: 0.5rem;
+  transition: font-weight 0.2s ease;
+}
+.stepper .stepper-item:not(.current):not(.completed):not(.disabled) .stepper-indicator {
+  background-color: var(--bs-primary);
+}
+.stepper .stepper-item.current .stepper-indicator {
+  transform: var(--stepper-indicator-transform);
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.4);
+}
+.stepper .stepper-item.current .stepper-label {
+  font-weight: bold;
+}
+.stepper .stepper-item.completed .stepper-indicator {
+  background-color: var(--bs-success);
+}
+.stepper .stepper-item.completed::before {
+  background-color: var(--bs-success);
+}
+.stepper .stepper-item.disabled .stepper-indicator {
+  background-color: var(--bs-secondary);
+}
+.stepper .stepper-item.disabled .stepper-link {
+  pointer-events: none;
+  color: var(--bs-secondary);
+}
+.stepper .stepper-item.disabled::before {
+  background-color: var(--bs-secondary);
+}

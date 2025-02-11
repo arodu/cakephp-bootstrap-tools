@@ -15,8 +15,11 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "cssnano": "^7.0.6",
     "sass": "^1.84.0",
     "terser": "^5.38.2",
-    "vite": "^6.1.0"
+    "vite": "^6.1.0",
+    "vite-plugin-minify": "^2.1.0"
   }
 }
