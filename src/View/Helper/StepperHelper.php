@@ -29,10 +29,8 @@ class StepperHelper extends Helper
         'cssFile' => 'BootstrapTools.bst-style.min',
         'templates' => [
             'container' => '<div class="stepper-container">{{content}}</div>',
-            'list' => '<ul class="stepper">{{content}}</ul>',
-            'step' => '<li class="stepper-item {{status}}">{{link}}</li>',
-            'link' => '<a href="{{url}}" class="stepper-link">{{content}}</a>',
-            'content' => '<div class="stepper-link-content">{{indicator}}{{label}}</div>',
+            'step' => '<div class="stepper-item {{status}}">{{link}}</div>',
+            'link' => '<a href="{{url}}" class="stepper-link">{{indicator}}{{label}}</a>',
             'indicator' => '<div class="stepper-indicator">{{content}}</div>',
             'label' => '<div class="stepper-label">{{content}}</div>',
             'icon' => '<i class="{{icon}}"></i>',
@@ -107,13 +105,12 @@ class StepperHelper extends Helper
             $content .= $this->renderItem($item, $index + 1);
         }
 
-        $stepper = $this->templater()->format('list', ['content' => $content]);
-
-        $output = $this->templater()->format('container', ['content' => $stepper]);
+        $output = $this->templater()->format('container', ['content' => $content]);
 
         $this->reset();
 
-        $css = $this->css();
+        //$css = $this->css();
+        $css = '';
 
         return $output . $css;
     }
@@ -140,7 +137,8 @@ class StepperHelper extends Helper
         $url = $item['disabled'] ? '#' : Router::url($item['url']);
         $link = $this->templater()->format('link', [
             'url' => $url,
-            'content' => $this->templater()->format('content', ['indicator' => $indicator, 'label' => $label]),
+            'indicator' => $indicator,
+            'label' => $label,
         ]);
 
         return $this->templater()->format('step', ['status' => $status, 'link' => $link]);
