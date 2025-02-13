@@ -109,8 +109,7 @@ class StepperHelper extends Helper
 
         $this->reset();
 
-        //$css = $this->css();
-        $css = '';
+        $css = $this->css();
 
         return $output . $css;
     }
