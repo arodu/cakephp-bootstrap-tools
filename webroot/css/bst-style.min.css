@@ -32,13 +32,6 @@
   position: relative;
   text-align: center;
 }
-
-.stepper-label {
-  font-size: var(--stepper-font-size);
-  white-space: nowrap;
-  font-weight: bold;
-}
-
 .stepper-item:not(:first-child)::before {
   content: "";
   position: absolute;
@@ -50,20 +43,16 @@
   transform: translateY(-50%);
   z-index: 1;
 }
-
 .stepper-item.current:not(:first-child)::before {
   background-color: var(--stepper-color-current);
 }
-
 .stepper-item.completed:not(:first-child)::before {
   background-color: var(--stepper-color-completed);
 }
-
 .stepper-item.disabled:not(:first-child)::before {
   background-color: var(--stepper-color-disabled);
 }
-
-.stepper-link {
+.stepper-item .stepper-link {
   color: var(--stepper-color-current);
   text-decoration: none;
   display: inline-block;
@@ -71,26 +60,24 @@
   z-index: 2;
   transition: all 0.3s ease;
 }
-
 .stepper-item.current .stepper-link {
   color: var(--stepper-color-current);
 }
-
 .stepper-item.completed .stepper-link {
   color: var(--stepper-color-completed);
 }
-
 .stepper-item.disabled .stepper-link {
   color: var(--stepper-color-disabled);
   pointer-events: none;
 }
-
 .stepper-item:not(.current):not(.completed):not(.disabled) .stepper-link:hover {
   color: var(--stepper-color-current);
 }
 
-.stepper-indicator:hover {
-  background-color: var(--stepper-color-current);
+.stepper-label {
+  font-size: var(--stepper-font-size);
+  white-space: nowrap;
+  font-weight: bold;
 }
 
 .stepper-indicator {
@@ -106,6 +93,18 @@
   font-size: calc(var(--stepper-indicator-size) * 0.5);
   font-weight: bold;
 }
+.stepper-indicator:hover {
+  background-color: var(--stepper-color-current);
+}
+.stepper-indicator i {
+  color: white;
+  font-size: calc(var(--stepper-indicator-size) * 0.5);
+  width: 100% !important;
+  height: 100% !important;
+}
+.stepper-indicator i::before {
+  vertical-align: bottom !important;
+}
 
 .stepper-item.current .stepper-indicator {
   background-color: var(--stepper-color-current);
@@ -117,15 +116,4 @@
 
 .stepper-item.disabled .stepper-indicator {
   background-color: var(--stepper-color-disabled);
-}
-
-.stepper-indicator i {
-  color: white;
-  font-size: calc(var(--stepper-indicator-size) * 0.5);
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.stepper-indicator i::before {
-  vertical-align: bottom !important;
 }
