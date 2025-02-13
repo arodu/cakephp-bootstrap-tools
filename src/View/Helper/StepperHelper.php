@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
 
+use Cake\Routing\Router;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
 use Cake\View\StringTemplateTrait;
-use Cake\View\View;
 
 /**
  * Stepper helper
@@ -16,13 +16,17 @@ class StepperHelper extends Helper
 {
     use StringTemplateTrait;
 
+    const STATUS_CURRENT = 'current';
+    const STATUS_COMPLETED = 'completed';
+    const STATUS_DISABLED = 'disabled';
+
     /**
      * Default configuration.
      *
      * @var array<string, mixed>
      */
     protected array $_defaultConfig = [
-        'cssFile' => 'BootstrapTools.bst-stepper',
+        'cssFile' => 'BootstrapTools.bst-style.min',
         'templates' => [
             'container' => '<div class="stepper-container">{{content}}</div>',
             'list' => '<ul class="stepper">{{content}}</ul>',
@@ -59,11 +63,12 @@ class StepperHelper extends Helper
             throw new \InvalidArgumentException('You must provide a label and a URL for each step');
         }
 
-        $this->steps[] = [
-            'label' => $options['label'] ?? '',
-            'url' => $options['url'] ?? '#',
-            'status' => $options['status'] ?? '',
-        ];
+        $this->steps[] = Hash::merge([
+            'label' => '',
+            'url' => '#',
+            'icon' => '',
+            'disabled' => false,
+        ], $options);
 
         return $this;
     }
@@ -108,7 +113,9 @@ class StepperHelper extends Helper
 
         $this->reset();
 
-        return $output;
+        $css = $this->css();
+
+        return $output . $css;
     }
 
     /**
@@ -122,16 +129,21 @@ class StepperHelper extends Helper
         $label = $this->templater()->format('label', ['content' => $item['label']]);
         $icon = $item['icon'] ? $this->templater()->format('icon', ['icon' => $item['icon']]) : $index;
         $indicator = $this->templater()->format('indicator', ['content' => $icon]);
+
+        $status = match (true) {
+            isset($item['completed']) && $item['completed'] === true => self::STATUS_COMPLETED,
+            isset($item['disabled']) && $item['disabled'] === true => self::STATUS_DISABLED,
+            $index === $this->currentStep => self::STATUS_CURRENT,
+            default => '',
+        };
+
+        $url = $item['disabled'] ? '#' : Router::url($item['url']);
         $link = $this->templater()->format('link', [
-            'url' => $item['url'],
+            'url' => $url,
             'content' => $this->templater()->format('content', ['indicator' => $indicator, 'label' => $label]),
         ]);
 
-        if ($index === $this->currentStep) {
-            $item['status'] = 'current';
-        }
-
-        return $this->templater()->format('step', ['status' => $item['status'], 'link' => $link]);
+        return $this->templater()->format('step', ['status' => $status, 'link' => $link]);
     }
 
     /**
@@ -151,7 +163,11 @@ class StepperHelper extends Helper
      */
     public function css(array $options = []): ?string
     {
-        $options = Hash::merge(['block' => true], $options);
+        $options = Hash::merge([
+            'block' => true,
+            'once' => true,
+            'rel' => 'stylesheet',
+        ], $options);
 
         return $this->getView()->Html->css($this->getConfig('cssFile'), $options);
     }
