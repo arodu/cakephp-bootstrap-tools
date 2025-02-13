@@ -63,6 +63,7 @@
 }
 .stepper-item .stepper-link:hover {
   transform: scale(1.1);
+  font-weight: bold;
 }
 .stepper-item.current .stepper-link {
   color: var(--stepper-color-current);
@@ -96,6 +97,7 @@
   background-color: var(--stepper-color-default);
   color: white;
   font-size: calc(var(--stepper-indicator-size) * 0.5);
+  font-weight: bold;
 }
 .stepper-indicator:hover {
   background-color: var(--stepper-color-hover);

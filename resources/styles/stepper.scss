@@ -58,6 +58,7 @@
         transition: all 0.2s ease;
         &:hover {
             transform: scale(1.1);
+            font-weight: bold;
         }
     }
 
@@ -98,7 +99,7 @@
     background-color: var(--stepper-color-default);
     color: white;
     font-size: calc(var(--stepper-indicator-size) * 0.5);
-    //font-weight: bold;
+    font-weight: bold;
 
     &:hover {
         background-color: var(--stepper-color-hover);
