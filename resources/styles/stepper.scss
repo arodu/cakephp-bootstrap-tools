@@ -5,6 +5,7 @@
     --stepper-line-height: 3px;
     --stepper-line-spacing: 0.5rem;
 
+    --stepper-color-hover: var(--bs-link-hover-color);
     --stepper-color-default: var(--bs-link-color);
     --stepper-color-completed: var(--bs-success);
     --stepper-color-disabled: var(--bs-secondary);
@@ -54,11 +55,16 @@
         display: inline-block;
         position: relative;
         z-index: 2;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
+        &:hover {
+            transform: scale(1.1);
+        }
     }
 
     &.current .stepper-link {
         color: var(--stepper-color-current);
+        font-weight: bold;
+        transform: scale(1.1);
     }
 
     &.completed .stepper-link {
@@ -71,14 +77,14 @@
     }
 
     &:not(.current):not(.completed):not(.disabled) .stepper-link:hover {
-        color: var(--stepper-color-current);
+        color: var(--stepper-color-hover);
     }
 }
 
 .stepper-label {
     font-size: var(--stepper-font-size);
     white-space: nowrap;
-    font-weight: bold;
+    //font-weight: bold;
 }
 
 .stepper-indicator {
@@ -92,10 +98,10 @@
     background-color: var(--stepper-color-default);
     color: white;
     font-size: calc(var(--stepper-indicator-size) * 0.5);
-    font-weight: bold;
+    //font-weight: bold;
 
     &:hover {
-        background-color: var(--stepper-color-current);
+        background-color: var(--stepper-color-hover);
     }
 
     i {
