@@ -19,7 +19,6 @@ use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Http\MiddlewareQueue;
 use Cake\Routing\RouteBuilder;
-use Cake\Utility\Hash;
 
 /**
  * Plugin for BootstrapTools

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
 
-use BootstrapTools\Utility\RegisterScopeDataTrait;
 use BootstrapTools\View\ActionItems\ActionItem;
 use BootstrapTools\View\ActionItems\ActionItemInterface;
 use BootstrapTools\View\ActionItems\ActionType;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
+use UtilityKit\Trait\RegisterScopeDataTrait;
 
 /**
  * Helper for rendering action groups.

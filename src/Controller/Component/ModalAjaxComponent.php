@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace BootstrapTools\Controller\Component;
 
-use BootstrapTools\Http\JsonResponse;
 use Cake\Controller\Component;
 use Cake\Event\EventInterface;
 use Cake\Http\Response;
 use Cake\Utility\Hash;
+use UtilityKit\Http\JsonResponse;
 
 /**
  * ModalAjax component

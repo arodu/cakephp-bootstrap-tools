@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace BootstrapTools\View\Trait;
 
 use Cake\Core\Configure;
-use Cake\Event\EventInterface;
 use Cake\Utility\Hash;
 
 trait ThemeSettingsTrait
