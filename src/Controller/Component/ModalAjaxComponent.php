@@ -34,6 +34,8 @@ class ModalAjaxComponent extends Component
      */
     protected array $options = [];
 
+    protected bool $preRendered = false;
+
     /**
      * @param array $config
      * @return void
@@ -48,6 +50,11 @@ class ModalAjaxComponent extends Component
 
     public function beforeRender(EventInterface $event): void
     {
+        if ($this->preRendered) {
+            return;
+        }
+
+        $this->preRendered = true;
         $event->setResult($this->success());
     }
 
@@ -73,7 +80,7 @@ class ModalAjaxComponent extends Component
         $options['success'] = $success;
         $this->options = [];
 
-        return match($this->getConfig('strategy')) {
+        return match ($this->getConfig('strategy')) {
             self::STRATEGY_HTML => $this->handleHtmlResponse($options),
             self::STRATEGY_JSON => $this->handleJsonResponse($options),
             default => throw new \RuntimeException('Invalid strategy'),
