@@ -1,0 +1,90 @@
+// Animaciones para iconos de Bootstrap
+// Variables de personalización
+$spin-duration: 1s;
+$shake-intensity: 5px;
+$pulse-scale: 1.2;
+$pulse-duration: 1.5s;
+
+// Animación giratoria (spinner)
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Animaciones de vibración (shake)
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-#{$shake-intensity}); }
+  75% { transform: translateX($shake-intensity); }
+}
+
+@keyframes shakeHard {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  50% { transform: translateX(6px); }
+  75% { transform: translateX(-4px); }
+}
+
+// Animación de pulso (pulse)
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale($pulse-scale); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulseFast {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+// Clase base para centrado
+.icon-animation {
+  display: inline-block;
+  transform-origin: center center; // Corrección del eje de rotación
+  vertical-align: middle; // Mejor alineación
+}
+
+// Spinner centrado
+.spin-icon {
+  @extend .icon-animation;
+  animation: spin $spin-duration linear infinite;
+}
+
+// Shakers
+.shake-icon {
+  @extend .icon-animation;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+.shake-icon-hard {
+  @extend .icon-animation;
+  animation: shakeHard 0.3s ease-in-out infinite;
+}
+
+// Pulse
+.pulse-icon {
+  @extend .icon-animation;
+  animation: pulse $pulse-duration ease-in-out infinite;
+}
+
+.pulse-icon-fast {
+  @extend .icon-animation;
+  animation: pulseFast 0.8s ease-in-out infinite;
+}
+
+// Hover effects
+.shake-on-hover {
+  @extend .icon-animation;
+  
+  &:hover {
+    animation: shake 0.5s ease-in-out;
+  }
+}
+
+.pulse-on-hover {
+  @extend .icon-animation;
+  
+  &:hover {
+    animation: pulse 1s ease-in-out;
+  }
+}
