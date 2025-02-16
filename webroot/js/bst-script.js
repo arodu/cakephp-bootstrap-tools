@@ -242,13 +242,23 @@ class ContainerAjax extends BaseManager {
       csrfToken: null,
       form: {
         autoRender: true
+      },
+      links: {
+        enabled: true,
+        bypassAttribute: "data-ajax-bypass",
+        updateHistory: false
       }
     };
     this.config = BaseManager.mergeConfig(defaultConfig, config);
     this.container = containerElement;
-    this.url = this.container.dataset.url;
-    if (this.config.autoLoad && this.url) {
-      this.loadContent(this.url);
+    this.initialUrl = this.container.dataset.url;
+    this.currentUrl = this.initialUrl;
+    this.boundHandleLinkClick = this.handleLinkClick.bind(this);
+    if (this.config.autoLoad && this.initialUrl) {
+      this.loadContent(this.initialUrl);
+    }
+    if (this.config.links.enabled) {
+      this.container.addEventListener("click", this.boundHandleLinkClick);
     }
   }
   async loadContent(url) {
@@ -258,6 +268,10 @@ class ContainerAjax extends BaseManager {
         headers: { "X-Requested-With": "XMLHttpRequest" }
       });
       if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+      this.currentUrl = url;
+      if (this.config.links.updateHistory) {
+        window.history.pushState({ containerUrl: url }, "", url);
+      }
       const html = await response.text();
       this.updateContainer(html);
       this.attachForms();
@@ -273,12 +287,37 @@ class ContainerAjax extends BaseManager {
       });
     }
   }
+  handleLinkClick(event) {
+    const link = event.target.closest("a");
+    if (!link) return;
+    const href = link.href;
+    const bypass = link.hasAttribute(this.config.links.bypassAttribute);
+    if (bypass || !this.isSameOrigin(href) || this.isFragmentLink(link)) {
+      return;
+    }
+    event.preventDefault();
+    this.loadContent(href);
+  }
+  isSameOrigin(href) {
+    try {
+      const url = new URL(href);
+      return url.origin === window.location.origin;
+    } catch {
+      return false;
+    }
+  }
+  isFragmentLink(link) {
+    const href = link.getAttribute("href");
+    return !href || href.startsWith("#");
+  }
   updateContainer(html) {
     this.container.innerHTML = html;
     this.executeScripts(this.container);
   }
   reload() {
-    if (this.url) this.loadContent(this.url);
+    if (this.currentUrl) {
+      this.loadContent(this.currentUrl);
+    }
   }
   attachForms() {
     this.container.querySelectorAll("form").forEach((form) => {
