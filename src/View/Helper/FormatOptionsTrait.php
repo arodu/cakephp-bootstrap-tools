@@ -38,6 +38,10 @@ trait FormatOptionsTrait
             $options['disabled'] = true;
             $options['aria-disabled'] = 'true';
         }
+        if (!empty($item['class'])) {
+            $classes[] = $item['class'];
+        }
+
         $options['class'] = implode(' ', $classes);
 
         if (!empty($item['icon'])) {
