@@ -3,13 +3,16 @@
   "version": "1.0.0",
   "description": "## Installation",
   "main": "vite.config.js",
+  "type": "module",
   "directories": {
     "doc": "docs",
     "test": "tests"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "npm run build:normal && npm run build:min",
+    "build:normal": "vite build --config vite.config.js",
+    "build:min": "vite build --config vite.config.min.js"
   },
   "keywords": [],
   "author": "",
