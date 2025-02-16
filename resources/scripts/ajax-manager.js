@@ -136,6 +136,11 @@ class FormAjaxManager extends BaseManager {
 
         this.boundHandleSubmit = this.handleSubmit.bind(this);
         this.init();
+
+        const originalSubmit = formElement.submit.bind(formElement);
+        formElement.submit = () => {
+            this.handleSubmit(new Event('submit'));
+        };
     }
 
     init() {
@@ -245,38 +250,45 @@ class ModalAjaxManager extends BaseManager {
                 title: '.modal-title',
                 body: '.modal-body',
                 closeOnSuccess: false,
-                reloadPageOnSuccess: false,
-                reloadPageOnClose: false,
+                reloadPageOnClose: false
             },
-            form: {
-                autoRender: true,
-                overwriteOnLoading: false,
+            containerAjaxConfig: { // Nueva configuración para ContainerAjax
+                autoLoad: false,
+                links: {
+                    enabled: true,
+                    updateHistory: false
+                },
+                form: {
+                    autoRender: true
+                }
             },
             csrfToken: null
         };
 
-        let mergedConfig = BaseManager.mergeConfig(defaultConfig, config);
-        mergedConfig.modal = { ...defaultConfig.modal, ...(config.modal || {}) };
-        mergedConfig.form = { ...defaultConfig.form, ...(config.form || {}) };
-
-        this.config = mergedConfig;
+        this.config = BaseManager.mergeConfig(defaultConfig, config);
         this.modal = document.getElementById(this.config.target);
-        this.loading = {
-            title: this.modal.querySelector(this.config.modal.title).innerHTML,
-            html: this.modal.querySelector(this.config.modal.body).innerHTML
-        };
+        this.containerAjax = this.initContainerAjax(); // Inicializar ContainerAjax
         this.shouldReloadPageOnClose = false;
-
+        
         this.init();
     }
 
-    init() {
-        this.bindEvents();
+    initContainerAjax() {
+        const modalBody = this.modal.querySelector(this.config.modal.body);
+        return new ContainerAjax(modalBody, {
+            ...this.config.containerAjaxConfig,
+            csrfToken: this.config.csrfToken,
+            onFormSuccess: (result) => this.handleFormSuccess(result)
+        });
     }
 
-    bindEvents() {
+    init() {
+        this.bindModalEvents();
+        this.bindContainerEvents();
+    }
+
+    bindModalEvents() {
         this.modal.addEventListener('show.bs.modal', e => {
-            this.shouldReloadPageOnClose = false;
             const url = e.relatedTarget?.dataset?.url;
             if (url) this.loadContent(url);
         });
@@ -288,96 +300,34 @@ class ModalAjaxManager extends BaseManager {
         });
     }
 
-    async loadContent(url) {
-        try {
-            this.dispatchEvent('modalAjaxLoad', { url, modal: this.modal });
-            this.startLoading();
-
-            const response = await fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            });
-
-            const result = await this.processResponse(response);
-            this.stopLoading();
-            this.updateModal(result);
-            this.attachForms();
-
-            this.dispatchEvent('modalAjaxLoaded', {
-                data: result,
-                modal: this.modal
-            });
-
-        } catch (error) {
-            this.handleError(error);
-        }
-    }
-
-    async processResponse(response) {
-        const contentType = response.headers.get('Content-Type');
-        let result = { title: '', html: '' };
-
-        if (contentType.includes('application/json')) {
-            const data = await response.json();
-            result = { ...result, ...data };
-        } else if (contentType.includes('text/html')) {
-            result.html = await response.text();
-            result.title = response.headers.get('X-Modal-Title') ||
-                this.extractTitle(result.html) ||
-                this.config.title;
-        }
-
-        return result;
-    }
-
-    updateModal({ title, html }) {
-        this.modal.querySelector(this.config.modal.title).innerHTML = title;
-        const body = this.modal.querySelector(this.config.modal.body);
-        body.innerHTML = html;
-        this.executeScripts(body);
-    }
-
-    attachForms() {
-        const modalBody = this.modal.querySelector(this.config.modal.body);
-        modalBody.querySelectorAll('form').forEach(form => {
-            new FormAjaxManager(form, {
-                target: modalBody,
-                autoRender: this.config.form.autoRender,
-                csrfToken: this.config.csrfToken,
-                onSuccess: (result) => {
-                    this.shouldReloadPageOnClose = true;
-
-                    if (this.config.modal.closeOnSuccess) {
-                        const modalInstance = bootstrap.Modal.getInstance(this.modal);
-                        if (modalInstance) modalInstance.hide();
-                    }
-                }
-            });
+    bindContainerEvents() {
+        // Escuchar eventos del ContainerAjax para actualizar el título del modal
+        this.containerAjax.container.addEventListener('containerAjaxLoaded', (e) => {
+            const title = e.detail.data.title || this.extractTitle(e.detail.data.html);
+            if (title) this.updateModalTitle(title);
         });
     }
 
-    startLoading() {
-        this.modal.classList.add('loading');
-        if (this.config.form.overwriteOnLoading) {
-            this.modal.querySelector(this.config.modal.title).innerHTML = this.loading.title;
-            this.modal.querySelector(this.config.modal.body).innerHTML = this.loading.html;
+    async loadContent(url) {
+        this.dispatchEvent('modalAjaxLoad', { url, modal: this.modal });
+        await this.containerAjax.loadContent(url);
+    }
+
+    handleFormSuccess(result) {
+        this.shouldReloadPageOnClose = true;
+        if (this.config.modal.closeOnSuccess) {
+            bootstrap.Modal.getInstance(this.modal)?.hide();
         }
     }
 
-    stopLoading() {
-        this.modal.classList.remove('loading');
+    updateModalTitle(title) {
+        this.modal.querySelector(this.config.modal.title).textContent = title;
     }
 
     extractTitle(html) {
-        const match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
-        return match ? match[1] : null;
-    }
-
-    handleError(error) {
-        console.error('Modal Error:', error);
-        this.updateModal({
-            title: 'Error',
-            html: `<p>${error.message}</p>`
-        });
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        return tempDiv.querySelector('h1')?.textContent;
     }
 }
 

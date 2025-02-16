@@ -30,6 +30,10 @@ class FormAjaxManager extends BaseManager {
     this.form = formElement;
     this.boundHandleSubmit = this.handleSubmit.bind(this);
     this.init();
+    formElement.submit.bind(formElement);
+    formElement.submit = () => {
+      this.handleSubmit(new Event("submit"));
+    };
   }
   init() {
     this.bindEvents();
@@ -110,128 +114,6 @@ class FormAjaxManager extends BaseManager {
     const message = error.message || "Error processing request";
     console.error("Form Error:", message);
     this.config.target.innerHTML = `<div class="alert alert-danger">${message}</div>`;
-  }
-}
-class ModalAjaxManager extends BaseManager {
-  constructor(config) {
-    super();
-    const defaultConfig = {
-      target: "ajax-modal",
-      modal: {
-        title: ".modal-title",
-        body: ".modal-body",
-        closeOnSuccess: false,
-        reloadPageOnSuccess: false,
-        reloadPageOnClose: false
-      },
-      form: {
-        autoRender: true,
-        overwriteOnLoading: false
-      },
-      csrfToken: null
-    };
-    let mergedConfig = BaseManager.mergeConfig(defaultConfig, config);
-    mergedConfig.modal = { ...defaultConfig.modal, ...config.modal || {} };
-    mergedConfig.form = { ...defaultConfig.form, ...config.form || {} };
-    this.config = mergedConfig;
-    this.modal = document.getElementById(this.config.target);
-    this.loading = {
-      title: this.modal.querySelector(this.config.modal.title).innerHTML,
-      html: this.modal.querySelector(this.config.modal.body).innerHTML
-    };
-    this.shouldReloadPageOnClose = false;
-    this.init();
-  }
-  init() {
-    this.bindEvents();
-  }
-  bindEvents() {
-    this.modal.addEventListener("show.bs.modal", (e) => {
-      var _a, _b;
-      this.shouldReloadPageOnClose = false;
-      const url = (_b = (_a = e.relatedTarget) == null ? void 0 : _a.dataset) == null ? void 0 : _b.url;
-      if (url) this.loadContent(url);
-    });
-    this.modal.addEventListener("hidden.bs.modal", () => {
-      if (this.config.modal.reloadPageOnClose && this.shouldReloadPageOnClose) {
-        window.location.reload();
-      }
-    });
-  }
-  async loadContent(url) {
-    try {
-      this.dispatchEvent("modalAjaxLoad", { url, modal: this.modal });
-      this.startLoading();
-      const response = await fetch(url, {
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-      });
-      const result = await this.processResponse(response);
-      this.stopLoading();
-      this.updateModal(result);
-      this.attachForms();
-      this.dispatchEvent("modalAjaxLoaded", {
-        data: result,
-        modal: this.modal
-      });
-    } catch (error) {
-      this.handleError(error);
-    }
-  }
-  async processResponse(response) {
-    const contentType = response.headers.get("Content-Type");
-    let result = { title: "", html: "" };
-    if (contentType.includes("application/json")) {
-      const data = await response.json();
-      result = { ...result, ...data };
-    } else if (contentType.includes("text/html")) {
-      result.html = await response.text();
-      result.title = response.headers.get("X-Modal-Title") || this.extractTitle(result.html) || this.config.title;
-    }
-    return result;
-  }
-  updateModal({ title, html }) {
-    this.modal.querySelector(this.config.modal.title).innerHTML = title;
-    const body = this.modal.querySelector(this.config.modal.body);
-    body.innerHTML = html;
-    this.executeScripts(body);
-  }
-  attachForms() {
-    const modalBody = this.modal.querySelector(this.config.modal.body);
-    modalBody.querySelectorAll("form").forEach((form) => {
-      new FormAjaxManager(form, {
-        target: modalBody,
-        autoRender: this.config.form.autoRender,
-        csrfToken: this.config.csrfToken,
-        onSuccess: (result) => {
-          this.shouldReloadPageOnClose = true;
-          if (this.config.modal.closeOnSuccess) {
-            const modalInstance = bootstrap.Modal.getInstance(this.modal);
-            if (modalInstance) modalInstance.hide();
-          }
-        }
-      });
-    });
-  }
-  startLoading() {
-    this.modal.classList.add("loading");
-    if (this.config.form.overwriteOnLoading) {
-      this.modal.querySelector(this.config.modal.title).innerHTML = this.loading.title;
-      this.modal.querySelector(this.config.modal.body).innerHTML = this.loading.html;
-    }
-  }
-  stopLoading() {
-    this.modal.classList.remove("loading");
-  }
-  extractTitle(html) {
-    const match = html.match(/<h1[^>]*>(.*?)<\/h1>/i);
-    return match ? match[1] : null;
-  }
-  handleError(error) {
-    console.error("Modal Error:", error);
-    this.updateModal({
-      title: "Error",
-      html: `<p>${error.message}</p>`
-    });
   }
 }
 class ContainerAjax extends BaseManager {
@@ -335,6 +217,86 @@ class ContainerAjax extends BaseManager {
                 ${error.message || "Error loading content"}
             </div>
         `;
+  }
+}
+class ModalAjaxManager extends BaseManager {
+  constructor(config) {
+    super();
+    const defaultConfig = {
+      target: "ajax-modal",
+      modal: {
+        title: ".modal-title",
+        body: ".modal-body",
+        closeOnSuccess: false,
+        reloadPageOnClose: false
+      },
+      containerAjaxConfig: {
+        autoLoad: false,
+        links: {
+          enabled: true,
+          updateHistory: false
+        },
+        form: {
+          autoRender: true
+        }
+      },
+      csrfToken: null
+    };
+    this.config = BaseManager.mergeConfig(defaultConfig, config);
+    this.modal = document.getElementById(this.config.target);
+    this.containerAjax = this.initContainerAjax();
+    this.shouldReloadPageOnClose = false;
+    this.init();
+  }
+  initContainerAjax() {
+    const modalBody = this.modal.querySelector(this.config.modal.body);
+    return new ContainerAjax(modalBody, {
+      ...this.config.containerAjaxConfig,
+      csrfToken: this.config.csrfToken,
+      onFormSuccess: (result) => this.handleFormSuccess(result)
+    });
+  }
+  init() {
+    this.bindModalEvents();
+    this.bindContainerEvents();
+  }
+  bindModalEvents() {
+    this.modal.addEventListener("show.bs.modal", (e) => {
+      var _a, _b;
+      const url = (_b = (_a = e.relatedTarget) == null ? void 0 : _a.dataset) == null ? void 0 : _b.url;
+      if (url) this.loadContent(url);
+    });
+    this.modal.addEventListener("hidden.bs.modal", () => {
+      if (this.config.modal.reloadPageOnClose && this.shouldReloadPageOnClose) {
+        window.location.reload();
+      }
+    });
+  }
+  bindContainerEvents() {
+    this.containerAjax.container.addEventListener("containerAjaxLoaded", (e) => {
+      const title = e.detail.data.title || this.extractTitle(e.detail.data.html);
+      if (title) this.updateModalTitle(title);
+    });
+  }
+  async loadContent(url) {
+    this.dispatchEvent("modalAjaxLoad", { url, modal: this.modal });
+    await this.containerAjax.loadContent(url);
+  }
+  handleFormSuccess(result) {
+    var _a;
+    this.shouldReloadPageOnClose = true;
+    if (this.config.modal.closeOnSuccess) {
+      (_a = bootstrap.Modal.getInstance(this.modal)) == null ? void 0 : _a.hide();
+    }
+  }
+  updateModalTitle(title) {
+    this.modal.querySelector(this.config.modal.title).textContent = title;
+  }
+  extractTitle(html) {
+    var _a;
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = html;
+    return (_a = tempDiv.querySelector("h1")) == null ? void 0 : _a.textContent;
   }
 }
 window.ContainerAjax = ContainerAjax;
