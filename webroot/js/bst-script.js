@@ -234,5 +234,70 @@ class ModalAjaxManager extends BaseManager {
     });
   }
 }
+class ContainerAjax extends BaseManager {
+  constructor(containerElement, config = {}) {
+    super();
+    const defaultConfig = {
+      autoLoad: true,
+      csrfToken: null,
+      form: {
+        autoRender: true
+      }
+    };
+    this.config = BaseManager.mergeConfig(defaultConfig, config);
+    this.container = containerElement;
+    this.url = this.container.dataset.url;
+    if (this.config.autoLoad && this.url) {
+      this.loadContent(this.url);
+    }
+  }
+  async loadContent(url) {
+    try {
+      this.dispatchEvent("containerAjaxLoad", { url, container: this.container });
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+      const html = await response.text();
+      this.updateContainer(html);
+      this.attachForms();
+      this.dispatchEvent("containerAjaxLoaded", {
+        data: html,
+        container: this.container
+      });
+    } catch (error) {
+      this.handleError(error);
+      this.dispatchEvent("containerAjaxError", {
+        error: error.message,
+        container: this.container
+      });
+    }
+  }
+  updateContainer(html) {
+    this.container.innerHTML = html;
+    this.executeScripts(this.container);
+  }
+  reload() {
+    if (this.url) this.loadContent(this.url);
+  }
+  attachForms() {
+    this.container.querySelectorAll("form").forEach((form) => {
+      new FormAjaxManager(form, {
+        target: this.container,
+        autoRender: this.config.form.autoRender,
+        csrfToken: this.config.csrfToken
+      });
+    });
+  }
+  handleError(error) {
+    console.error("Container Error:", error);
+    this.container.innerHTML = `
+            <div class="alert alert-danger">
+                ${error.message || "Error loading content"}
+            </div>
+        `;
+  }
+}
+window.ContainerAjax = ContainerAjax;
 window.FormAjaxManager = FormAjaxManager;
 window.ModalAjaxManager = ModalAjaxManager;
