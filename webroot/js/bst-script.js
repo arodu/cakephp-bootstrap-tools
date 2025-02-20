@@ -1,6 +1,19 @@
 class BaseManager {
-  static mergeConfig(defaults, config) {
-    return { ...defaults, ...config };
+  mergeConfig(defaults, config) {
+    const isObject = (obj) => obj && typeof obj === "object" && !Array.isArray(obj);
+    const result = { ...defaults };
+    for (const key in config) {
+      if (config.hasOwnProperty(key)) {
+        const defaultVal = result[key];
+        const configVal = config[key];
+        if (isObject(defaultVal) && isObject(configVal)) {
+          result[key] = this.mergeConfig(defaultVal, configVal);
+        } else {
+          result[key] = configVal !== void 0 ? configVal : defaultVal;
+        }
+      }
+    }
+    return result;
   }
   executeScripts(container) {
     container.querySelectorAll("script").forEach((oldScript) => {
@@ -26,8 +39,12 @@ class FormAjaxManager extends BaseManager {
     if (typeof defaultConfig.target === "string") {
       defaultConfig.target = document.querySelector(defaultConfig.target);
     }
-    this.config = BaseManager.mergeConfig(defaultConfig, config);
+    this.config = this.mergeConfig(defaultConfig, config);
+    this.config.target = config.target || formElement.closest(".form-container") || document.body;
     this.form = formElement;
+    if (typeof this.config.target === "string") {
+      this.config.target = document.querySelector(this.config.target);
+    }
     this.boundHandleSubmit = this.handleSubmit.bind(this);
     this.init();
     formElement.submit.bind(formElement);
@@ -44,11 +61,12 @@ class FormAjaxManager extends BaseManager {
     }
   }
   updateTarget(html) {
+    var _a;
     if (this.form) {
       this.form.removeEventListener("submit", this.boundHandleSubmit);
     }
     this.config.target.innerHTML = html;
-    this.form = this.config.target.querySelector("form");
+    this.form = (_a = this.config) == null ? void 0 : _a.target.querySelector("form");
     if (!this.form) {
       console.warn("New HTML does not contain a form");
     }
@@ -118,6 +136,7 @@ class FormAjaxManager extends BaseManager {
 }
 class ContainerAjax extends BaseManager {
   constructor(containerElement, config = {}) {
+    var _a, _b;
     super();
     const defaultConfig = {
       autoLoad: true,
@@ -131,9 +150,9 @@ class ContainerAjax extends BaseManager {
         updateHistory: false
       }
     };
-    this.config = BaseManager.mergeConfig(defaultConfig, config);
+    this.config = this.mergeConfig(defaultConfig, config);
     this.container = containerElement;
-    this.initialUrl = this.container.dataset.url;
+    this.initialUrl = ((_b = (_a = this.container) == null ? void 0 : _a.dataset) == null ? void 0 : _b.url) ?? null;
     this.currentUrl = this.initialUrl;
     this.boundHandleLinkClick = this.handleLinkClick.bind(this);
     if (this.config.autoLoad && this.initialUrl) {
@@ -197,8 +216,8 @@ class ContainerAjax extends BaseManager {
     this.executeScripts(this.container);
   }
   reload() {
-    if (this.currentUrl) {
-      this.loadContent(this.currentUrl);
+    if (this.initialUrl) {
+      this.loadContent(this.initialUrl);
     }
   }
   attachForms() {
@@ -242,7 +261,7 @@ class ModalAjaxManager extends BaseManager {
       },
       csrfToken: null
     };
-    this.config = BaseManager.mergeConfig(defaultConfig, config);
+    this.config = this.mergeConfig(defaultConfig, config);
     this.modal = document.getElementById(this.config.target);
     this.containerAjax = this.initContainerAjax();
     this.shouldReloadPageOnClose = false;

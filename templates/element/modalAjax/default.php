@@ -57,7 +57,6 @@ $dialogClasses = array_filter([
         new ModalAjaxManager({
             target: "<?= $target ?>",
             csrfToken: "<?= $this->getRequest()->getAttribute('csrfToken') ?>",
-            title: "<?= ($modalOptions['title'] ?? __('Modal Form')) ?>",
             modal: {
                 closeOnSuccess: <?= $closeOnSuccess ? 'true' : 'false' ?>,
                 reloadPageOnSuccess: <?= $reloadPageOnSuccess ? 'true' : 'false' ?>,

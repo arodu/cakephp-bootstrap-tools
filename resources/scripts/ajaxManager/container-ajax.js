@@ -17,9 +17,9 @@ export class ContainerAjax extends BaseManager {
             }
         };
 
-        this.config = BaseManager.mergeConfig(defaultConfig, config);
+        this.config = this.mergeConfig(defaultConfig, config);
         this.container = containerElement;
-        this.initialUrl = this.container.dataset.url;
+        this.initialUrl = this.container?.dataset?.url ?? null;
         this.currentUrl = this.initialUrl;
 
         this.boundHandleLinkClick = this.handleLinkClick.bind(this);
@@ -102,8 +102,8 @@ export class ContainerAjax extends BaseManager {
     }
 
     reload() {
-        if (this.currentUrl) {
-            this.loadContent(this.currentUrl);
+        if (this.initialUrl) {
+            this.loadContent(this.initialUrl);
         }
     }
 

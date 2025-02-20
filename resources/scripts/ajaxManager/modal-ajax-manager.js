@@ -25,7 +25,7 @@ export class ModalAjaxManager extends BaseManager {
             csrfToken: null
         };
 
-        this.config = BaseManager.mergeConfig(defaultConfig, config);
+        this.config = this.mergeConfig(defaultConfig, config);
         this.modal = document.getElementById(this.config.target);
         this.containerAjax = this.initContainerAjax();
         this.shouldReloadPageOnClose = false;

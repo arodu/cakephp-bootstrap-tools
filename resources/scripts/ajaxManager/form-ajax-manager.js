@@ -15,8 +15,13 @@ export class FormAjaxManager extends BaseManager {
             defaultConfig.target = document.querySelector(defaultConfig.target);
         }
 
-        this.config = BaseManager.mergeConfig(defaultConfig, config);
+        this.config = this.mergeConfig(defaultConfig, config);
+        this.config.target = config.target || formElement.closest('.form-container') || document.body;
         this.form = formElement;
+
+        if (typeof this.config.target === "string") {
+            this.config.target = document.querySelector(this.config.target);
+        }
 
         this.boundHandleSubmit = this.handleSubmit.bind(this);
         this.init();
@@ -42,7 +47,7 @@ export class FormAjaxManager extends BaseManager {
             this.form.removeEventListener('submit', this.boundHandleSubmit);
         }
         this.config.target.innerHTML = html;
-        this.form = this.config.target.querySelector('form');
+        this.form = this.config?.target.querySelector('form');
         if (!this.form) {
             console.warn('New HTML does not contain a form');
         }
