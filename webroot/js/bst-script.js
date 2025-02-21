@@ -26,94 +26,110 @@ class BaseManager {
     document.dispatchEvent(new CustomEvent(name, { detail }));
   }
 }
-class FormAjaxManager extends BaseManager {
-  constructor(formElement, config = {}) {
+class ContainerAjax extends BaseManager {
+  constructor(containerElement, config = {}) {
+    var _a, _b;
     super();
     const defaultConfig = {
-      autoRender: true,
-      target: formElement.closest(".form-container") || document.body,
+      autoLoad: true,
       csrfToken: null,
-      onSuccess: null,
-      onError: null
+      form: {
+        autoRender: true,
+        onSuccess: null,
+        onError: null
+      },
+      links: {
+        enabled: true,
+        bypassAttribute: "data-ajax-bypass",
+        updateHistory: false
+      }
     };
-    if (typeof defaultConfig.target === "string") {
-      defaultConfig.target = document.querySelector(defaultConfig.target);
-    }
     this.config = this.mergeConfig(defaultConfig, config);
-    this.config.target = config.target || formElement.closest(".form-container") || document.body;
-    this.form = formElement;
-    if (typeof this.config.target === "string") {
-      this.config.target = document.querySelector(this.config.target);
-    }
-    this.boundHandleSubmit = this.handleSubmit.bind(this);
-    this.init();
-    formElement.submit.bind(formElement);
-    formElement.submit = () => {
-      this.handleSubmit(new Event("submit"));
-    };
+    this.container = containerElement;
+    this.initialUrl = ((_b = (_a = this.container) == null ? void 0 : _a.dataset) == null ? void 0 : _b.url) || null;
+    this.currentUrl = this.initialUrl;
+    this.boundHandleLinkClick = this.handleLinkClick.bind(this);
+    this.boundHandleFormSubmit = this.handleFormSubmit.bind(this);
+    this.initialize();
   }
-  init() {
-    this.bindEvents();
-  }
-  bindEvents() {
-    if (this.form) {
-      this.form.addEventListener("submit", this.boundHandleSubmit);
+  initialize() {
+    if (this.config.autoLoad && this.initialUrl) {
+      this.loadContent(this.initialUrl);
     }
-  }
-  updateTarget(html) {
-    var _a;
-    if (this.form) {
-      this.form.removeEventListener("submit", this.boundHandleSubmit);
+    if (this.config.links.enabled) {
+      this.container.addEventListener("click", this.boundHandleLinkClick);
     }
-    this.config.target.innerHTML = html;
-    this.form = (_a = this.config) == null ? void 0 : _a.target.querySelector("form");
-    if (!this.form) {
-      console.warn("New HTML does not contain a form");
-    }
-    this.bindEvents();
+    this.attachForms();
   }
-  async handleSubmit(event) {
-    event.preventDefault();
-    this.dispatchEvent("formAjaxSubmit", { form: this.form });
-    let response;
+  async loadContent(url) {
     try {
-      response = await fetch(this.form.action, {
-        method: this.form.method,
+      this.dispatchEvent("bst:container-ajax:load", {
+        url,
+        container: this.container
+      });
+      const response = await fetch(url, {
+        headers: { "X-Requested-With": "XMLHttpRequest" }
+      });
+      if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+      this.currentUrl = url;
+      if (this.config.links.updateHistory) {
+        window.history.pushState({ containerUrl: url }, "", url);
+      }
+      const html = await response.text();
+      this.updateContainer(html);
+      this.dispatchEvent("bst:container-ajax:loaded", {
+        data: html,
+        container: this.container
+      });
+    } catch (error) {
+      this.handleError(error);
+      this.dispatchEvent("bst:container-ajax:error", {
+        error: error.message,
+        container: this.container
+      });
+    }
+  }
+  // Form handling
+  async handleFormSubmit(event) {
+    var _a, _b, _c, _d;
+    event.preventDefault();
+    const form = event.target;
+    this.dispatchEvent("bst:container-ajax:form-submit", {
+      form,
+      container: this.container
+    });
+    try {
+      const response = await fetch(form.action, {
+        method: form.method,
         headers: {
           "X-Requested-With": "XMLHttpRequest",
           "Accept": "application/json, text/html, text/plain",
           "X-CSRF-Token": this.config.csrfToken
         },
-        body: new FormData(this.form)
+        body: new FormData(form)
       });
-      const result = await this.processResponse(response);
-      if (this.config.autoRender) {
-        this.updateTarget(result.html);
-        this.executeScripts(this.config.target);
+      const result = await this.processFormResponse(response);
+      if (this.config.form.autoRender) {
+        this.updateContainer(result.html);
       }
-      this.dispatchEvent("formAjaxSuccess", {
+      this.dispatchEvent("bst:container-ajax:form-success", {
         data: result,
-        form: this.form,
-        target: this.config.target,
+        form,
+        container: this.container,
         response
       });
-      if (this.config.onSuccess) {
-        this.config.onSuccess(result);
-      }
+      (_b = (_a = this.config.form).onSuccess) == null ? void 0 : _b.call(_a, result);
     } catch (error) {
-      this.handleError(error);
-      this.dispatchEvent("formAjaxError", {
+      this.handleFormError(error, form);
+      this.dispatchEvent("bst:container-ajax:form-error", {
         error: error.message,
-        form: this.form,
-        target: this.config.target,
-        response
+        form,
+        container: this.container
       });
-      if (this.config.onError) {
-        this.config.onError(error);
-      }
+      (_d = (_c = this.config.form).onError) == null ? void 0 : _d.call(_c, error);
     }
   }
-  async processResponse(response) {
+  async processFormResponse(response) {
     const contentType = response.headers.get("Content-Type") || "";
     let result = { html: "", success: response.ok };
     if (!response.ok) {
@@ -128,65 +144,25 @@ class FormAjaxManager extends BaseManager {
     }
     return result;
   }
-  handleError(error) {
-    const message = error.message || "Error processing request";
-    console.error("Form Error:", message);
-    this.config.target.innerHTML = `<div class="alert alert-danger">${message}</div>`;
+  handleFormError(error, form) {
+    const errorContainer = this.container;
+    errorContainer.innerHTML = `
+        <div class="alert alert-danger">
+          ${error.message || "Error processing form submission"}
+        </div>
+      `;
   }
-}
-class ContainerAjax extends BaseManager {
-  constructor(containerElement, config = {}) {
-    var _a, _b;
-    super();
-    const defaultConfig = {
-      autoLoad: true,
-      csrfToken: null,
-      form: {
-        autoRender: true
-      },
-      links: {
-        enabled: true,
-        bypassAttribute: "data-ajax-bypass",
-        updateHistory: false
-      }
-    };
-    this.config = this.mergeConfig(defaultConfig, config);
-    this.container = containerElement;
-    this.initialUrl = ((_b = (_a = this.container) == null ? void 0 : _a.dataset) == null ? void 0 : _b.url) ?? null;
-    this.currentUrl = this.initialUrl;
-    this.boundHandleLinkClick = this.handleLinkClick.bind(this);
-    if (this.config.autoLoad && this.initialUrl) {
-      this.loadContent(this.initialUrl);
-    }
-    if (this.config.links.enabled) {
-      this.container.addEventListener("click", this.boundHandleLinkClick);
-    }
-  }
-  async loadContent(url) {
-    try {
-      this.dispatchEvent("containerAjaxLoad", { url, container: this.container });
-      const response = await fetch(url, {
-        headers: { "X-Requested-With": "XMLHttpRequest" }
-      });
-      if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
-      this.currentUrl = url;
-      if (this.config.links.updateHistory) {
-        window.history.pushState({ containerUrl: url }, "", url);
-      }
-      const html = await response.text();
-      this.updateContainer(html);
-      this.attachForms();
-      this.dispatchEvent("containerAjaxLoaded", {
-        data: html,
-        container: this.container
-      });
-    } catch (error) {
-      this.handleError(error);
-      this.dispatchEvent("containerAjaxError", {
-        error: error.message,
-        container: this.container
-      });
-    }
+  // Helper methods
+  attachForms(container = this.container) {
+    container.querySelectorAll("form").forEach((form) => {
+      console.log("attachForms");
+      form.removeEventListener("submit", this.boundHandleFormSubmit);
+      form.addEventListener("submit", this.boundHandleFormSubmit);
+      form.submit.bind(form);
+      form.submit = () => {
+        this.handleFormSubmit(new Event("submit"));
+      };
+    });
   }
   handleLinkClick(event) {
     const link = event.target.closest("a");
@@ -199,10 +175,14 @@ class ContainerAjax extends BaseManager {
     event.preventDefault();
     this.loadContent(href);
   }
+  updateContainer(html) {
+    this.container.innerHTML = html;
+    this.executeScripts(this.container);
+    this.attachForms(this.container);
+  }
   isSameOrigin(href) {
     try {
-      const url = new URL(href);
-      return url.origin === window.location.origin;
+      return new URL(href).origin === window.location.origin;
     } catch {
       return false;
     }
@@ -211,31 +191,18 @@ class ContainerAjax extends BaseManager {
     const href = link.getAttribute("href");
     return !href || href.startsWith("#");
   }
-  updateContainer(html) {
-    this.container.innerHTML = html;
-    this.executeScripts(this.container);
+  handleError(error) {
+    console.error("Container Error:", error);
+    this.container.innerHTML = `
+        <div class="alert alert-danger">
+          ${error.message || "Error loading content"}
+        </div>
+      `;
   }
   reload() {
     if (this.initialUrl) {
       this.loadContent(this.initialUrl);
     }
-  }
-  attachForms() {
-    this.container.querySelectorAll("form").forEach((form) => {
-      new FormAjaxManager(form, {
-        target: this.container,
-        autoRender: this.config.form.autoRender,
-        csrfToken: this.config.csrfToken
-      });
-    });
-  }
-  handleError(error) {
-    console.error("Container Error:", error);
-    this.container.innerHTML = `
-            <div class="alert alert-danger">
-                ${error.message || "Error loading content"}
-            </div>
-        `;
   }
 }
 class ModalAjaxManager extends BaseManager {
@@ -319,5 +286,4 @@ class ModalAjaxManager extends BaseManager {
   }
 }
 window.ContainerAjax = ContainerAjax;
-window.FormAjaxManager = FormAjaxManager;
 window.ModalAjaxManager = ModalAjaxManager;
