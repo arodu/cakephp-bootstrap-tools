@@ -155,7 +155,6 @@ class ContainerAjax extends BaseManager {
   // Helper methods
   attachForms(container = this.container) {
     container.querySelectorAll("form").forEach((form) => {
-      console.log("attachForms");
       form.removeEventListener("submit", this.boundHandleFormSubmit);
       form.addEventListener("submit", this.boundHandleFormSubmit);
       form.submit.bind(form);
