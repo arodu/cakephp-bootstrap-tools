@@ -14,7 +14,7 @@ trait FormatOptionsTrait
         $label = $item['label'] ?? null;
         $url = $item['url'] ?? null;
 
-        $keysToRemove = ['label', 'url', 'color', 'outline', 'size', 'block', 'active', 'disabled', 'icon', 'type'];
+        $keysToRemove = ['label', 'url', 'color', 'outline', 'size', 'block', 'active', 'disabled', 'icon', 'type', 'iconPosition'];
         $options = array_diff_key($item, array_flip($keysToRemove));
 
         $classes = ['btn'];
@@ -45,8 +45,14 @@ trait FormatOptionsTrait
         $options['class'] = implode(' ', $classes);
 
         if (!empty($item['icon'])) {
-            $label = $this->Html->tag('i', '', ['class' => $item['icon']]) . $label;
+            $icon = $this->Html->tag('i', '', ['class' => $item['icon']]);
             $options['escape'] = false;
+
+            if (!empty($item['iconPosition']) && $item['iconPosition'] === 'right') {
+                $label = $label . $icon;
+            } else {
+                $label = $icon . $label;
+            }
         }
 
         return compact('label', 'url', 'options');

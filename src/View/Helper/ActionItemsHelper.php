@@ -31,6 +31,7 @@ class ActionItemsHelper extends Helper
     protected array $_defaultConfig = [
         'defaultGroup' => false,
         'actionItemClass' => ActionItem::class,
+        'iconPosition' => 'left',
     ];
 
     protected array $options = [];
