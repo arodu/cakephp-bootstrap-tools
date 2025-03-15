@@ -25,7 +25,7 @@ trait ThemeSettingsTrait
      *     'css' => [],
      *     'scripts' => [],
      * ];
-    */
+     */
 
     /**
      * @inheritDoc
@@ -37,7 +37,10 @@ trait ThemeSettingsTrait
      */
     abstract public function getConfig(?string $key = null, mixed $default = null): mixed;
 
-
+    /**
+     * @param array $config
+     * @return void
+     */
     public function themeSettingsInitialize(array $config): void
     {
         $config = Hash::merge(Configure::read($this->getConfig('configKey'), []), $config);
@@ -78,6 +81,7 @@ trait ThemeSettingsTrait
         foreach ($meta as $name => $content) {
             $output .= $this->getView()->Html->meta($name, $content);
         }
+
         return $output;
     }
 
@@ -94,6 +98,7 @@ trait ThemeSettingsTrait
         foreach ($css as $file) {
             $output .= $this->getView()->Html->css($file, $options);
         }
+
         return $output;
     }
 
@@ -110,6 +115,7 @@ trait ThemeSettingsTrait
         foreach ($scripts as $file) {
             $output .= $this->getView()->Html->script($file, $options);
         }
+
         return $output;
     }
 }
