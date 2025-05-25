@@ -11,9 +11,9 @@ use Cake\Utility\Hash;
 use UtilityKit\Http\JsonResponse;
 
 /**
- * ModalAjax component
+ * AjaxResponseComponent component
  */
-class ModalAjaxComponent extends Component
+class AjaxResponseComponent extends Component
 {
     const STRATEGY_HTML = 'html';
     const STRATEGY_JSON = 'json';
