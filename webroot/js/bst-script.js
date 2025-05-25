@@ -17,6 +17,9 @@ class BaseManager {
   }
   executeScripts(container) {
     container.querySelectorAll("script").forEach((oldScript) => {
+      if (!oldScript.textContent) {
+        return;
+      }
       const newScript = document.createElement("script");
       newScript.textContent = oldScript.textContent;
       oldScript.parentNode.replaceChild(newScript, oldScript);
