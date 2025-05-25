@@ -41,8 +41,7 @@ $script = $config['script'] ?? 'BootstrapTools./js/bst-ajax-manager';
     document.addEventListener('DOMContentLoaded', function() {
         const urlParams = new URLSearchParams(window.location.search);
         let activeTabParam = urlParams.get('tab');
-
-        const tabPanes = document.querySelectorAll('.ajax-tab-pane');
+        const tabPanes = document.querySelectorAll('#<?= $target ?> .ajax-tab-pane');
         const containers = {};
 
         tabPanes.forEach(pane => {
@@ -60,9 +59,11 @@ $script = $config['script'] ?? 'BootstrapTools./js/bst-ajax-manager';
         });
 
         if (activeTabParam) {
-            const tabTrigger = document.querySelector(`a[href="#\${activeTabParam}"]`);
+            const tabTrigger = document.querySelector(`a[href="#${activeTabParam}"]`);
             if (tabTrigger) {
                 bootstrap.Tab.getOrCreateInstance(tabTrigger).show();
+            } else {
+                console.error('Tab trigger not found for ID:', activeTabParam);
             }
         }
 
