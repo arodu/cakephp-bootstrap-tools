@@ -20,7 +20,7 @@ class ModalAjaxHelper extends Helper
     protected array $_defaultConfig = [
         'target' => 'ajax-modal',
         'element' => 'BootstrapTools.modalAjax/default',
-        'script' => 'BootstrapTools./js/bst-script',
+        'script' => 'BootstrapTools./js/bst-ajax-manager',
         'jsCallback' => false, // 'function (event, detail) { console.log(detail); }',
 
         'modalOptions' => [
@@ -111,6 +111,7 @@ class ModalAjaxHelper extends Helper
             'target' => $target,
             'jsCallback' => $jsCallback,
             'modalOptions' => $modalOptions,
+            'script' => $this->getConfig('script'),
         ]);
 
         return $this->getView()->element($this->getConfig('element'), $options);
