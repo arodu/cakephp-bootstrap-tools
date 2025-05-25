@@ -26,6 +26,7 @@ $navOptions = $config['nav'] ?? [];
                     'aria-controls' => $key,
                     'aria-selected' => 'true',
                     'tabindex' => '-1',
+                    'escape' => false,
                 ],
                 $options
             );
