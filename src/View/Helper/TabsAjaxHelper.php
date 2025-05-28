@@ -39,10 +39,6 @@ class TabsAjaxHelper extends Helper
      */
     public function addItem(string $key, array $options = []): self
     {
-        if (empty($options['url'])) {
-            $options['url'] = '#';
-        }
-
         if (empty($options['label'])) {
             $options['label'] = $key;
         }

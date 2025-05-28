@@ -11,28 +11,27 @@ $target = $config['target'] ?? 'ajax-tabs';
 $script = $config['script'] ?? 'BootstrapTools./js/bst-ajax-manager';
 ?>
 <div id="<?= $target ?>" class="tab-content">
-    <?php foreach ($tabs as $key => $options): ?>
-        <?php
-        if (empty($options['url'])) {
-            $options['url'] = '#';
-        } elseif (is_array($options['url'])) {
-            $options['url'] = $this->Url->build($options['url']);
-        }
-        ?>
-        <?= $this->Html->tag(
-            'div',
-            __('Loading...'),
-            [
-                'id' => $key,
-                'class' => 'ajax-tab-pane tab-pane fade' . ($options['active'] ?? false ? ' show active' : ''),
-                'role' => 'tabpanel',
-                'aria-labelledby' => $key . '-tab',
-                'tabindex' => '0',
-                'data-url' => $options['url'],
-            ]
-        );
-        ?>
-    <?php endforeach; ?>
+    <?php
+    foreach ($tabs as $key => $options):
+        $tabContentOptions = [
+            'id' => $key,
+            'class' => 'ajax-tab-pane tab-pane fade' . ($options['active'] ?? false ? ' show active' : ''),
+            'role' => 'tabpanel',
+            'aria-labelledby' => $key . '-tab',
+            'tabindex' => '0',
+            'escape' => false,
+        ];
+
+        if (!empty($options['url'])) :
+            $tabContentOptions['data-url'] = $this->Url->build($options['url']);
+            $bodyContent = $options['body'] ?? __('Loading...');
+        else:
+            $bodyContent = $options['body'] ?? '';
+        endif;
+
+        echo $this->Html->tag('div', $bodyContent, $tabContentOptions);
+    endforeach;
+    ?>
 </div>
 
 <?= $this->Html->script($script, ['block' => true, 'once' => true]) ?>

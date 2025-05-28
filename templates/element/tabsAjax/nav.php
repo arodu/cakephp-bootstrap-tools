@@ -46,7 +46,7 @@ $navOptions = $config['nav'] ?? [];
                 $options['aria-disabled'] = 'true';
                 $options['tabindex'] = '-1';
             }
-            unset($options['label'], $options['active'], $options['disabled'], $options['url']);
+            unset($options['label'], $options['active'], $options['disabled'], $options['url'], $options['body']);
             
             echo $this->Html->tag(
                 'li',
