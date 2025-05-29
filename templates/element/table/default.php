@@ -11,16 +11,35 @@ $tableActions['formatter'] ??= null;
 $pagination ??= false;
 $data ??= [];
 $class ??= 'table';
+$header ??= true;
 
 $totalColumns = count($columns) + (!empty($rowActions) ? 1 : 0);
 ?>
+
+<?php if ($header ?? true): ?>
+    <div class="row">
+        <div class="col d-flex align-items-center justify-content-between mb-3">
+            <h4 class="mb-3"><?= h($title ?? '') ?></h4>
+            <?php if (!empty($tableActions) && is_callable($tableActions['formatter'])): ?>
+                <div class="ms-auto d-flex gap-1">
+                    <?= $tableActions['formatter']() ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
 <div class="row">
     <div class="table-responsive col-12">
         <table class="<?= $class ?? 'table' ?>">
             <thead>
                 <tr>
                     <?php foreach ($columns as $key => $column): ?>
-                        <th><?= $column['label'] ?></th>
+                        <?php if ($column['sortable'] ?? false): ?>
+                            <th><?= $this->Paginator->sort($key, $column['label']) ?></th>
+                        <?php else: ?>
+                            <th><?= $column['label'] ?></th>
+                        <?php endif; ?>
                     <?php endforeach; ?>
                     <?php if (!empty($rowActions)): ?>
                         <th class="actions"><?= h($rowActions['label'] ?? __('Actions')) ?></th>
@@ -58,16 +77,6 @@ $totalColumns = count($columns) + (!empty($rowActions) ? 1 : 0);
                         </tr>
                     <?php endforeach; ?>
                 <?php endif; ?>
-
-                <?php if (!empty($tableActions) && is_callable($tableActions['formatter'])): ?>
-                    <tr>
-                        <td colspan="<?= $totalColumns - 1 ?>"></td>
-                        <td class="actions">
-                            <?= $tableActions['formatter']() ?>
-                        </td>
-                    </tr>
-                <?php endif; ?>
-
             </tbody>
         </table>
     </div>
