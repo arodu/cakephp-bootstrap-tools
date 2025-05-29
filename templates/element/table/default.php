@@ -20,10 +20,10 @@ $totalColumns = count($columns) + (!empty($rowActions) ? 1 : 0);
             <thead>
                 <tr>
                     <?php foreach ($columns as $key => $column): ?>
-                        <th><?= $column['head'] ?></th>
+                        <th><?= $column['label'] ?></th>
                     <?php endforeach; ?>
                     <?php if (!empty($rowActions)): ?>
-                        <th class="actions"><?= h($rowActions['head'] ?? __('Actions')) ?></th>
+                        <th class="actions"><?= h($rowActions['label'] ?? __('Actions')) ?></th>
                     <?php endif; ?>
                 </tr>
             </thead>
