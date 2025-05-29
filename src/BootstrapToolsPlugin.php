@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 /**
  * BootstrapTools - A CakePHP Plugin
@@ -34,16 +35,7 @@ class BootstrapToolsPlugin extends BasePlugin
      * @param \Cake\Core\PluginApplicationInterface $app The host application
      * @return void
      */
-    public function bootstrap(PluginApplicationInterface $app): void
-    {
-        $config = Configure::read('BootstrapTools');
-        //Configure::write('BootstrapTools', Hash::merge([
-        //    'menu' => [
-        //        'default' => 'Menu',
-        //        'key' => 'activeMenuItem',
-        //    ],
-        //], $config));
-    }
+    public function bootstrap(PluginApplicationInterface $app): void {}
 
     /**
      * Add routes for the plugin.
