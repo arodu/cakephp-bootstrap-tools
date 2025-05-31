@@ -102,15 +102,30 @@ class ContainerAjax extends BaseManager {
       container: this.container
     });
     try {
-      const response = await fetch(form.action, {
-        method: form.method,
+      const method = form.method.toUpperCase();
+      const isGetOrHead = method === "GET" || method === "HEAD";
+      const fetchOptions = {
+        method,
         headers: {
           "X-Requested-With": "XMLHttpRequest",
           "Accept": "application/json, text/html, text/plain",
           "X-CSRF-Token": this.config.csrfToken
-        },
-        body: new FormData(form)
-      });
+        }
+      };
+      let url = form.action;
+      if (isGetOrHead) {
+        const urlObj = new URL(url, window.location.origin);
+        new FormData(form).forEach((_, key) => {
+          urlObj.searchParams.delete(key);
+        });
+        new FormData(form).forEach((value, key) => {
+          urlObj.searchParams.append(key, value);
+        });
+        url = urlObj.toString();
+      } else {
+        fetchOptions.body = new FormData(form);
+      }
+      const response = await fetch(url, fetchOptions);
       const result = await this.processFormResponse(response);
       if (this.config.form.autoRender) {
         this.updateContainer(result.html);
@@ -160,9 +175,14 @@ class ContainerAjax extends BaseManager {
     container.querySelectorAll("form").forEach((form) => {
       form.removeEventListener("submit", this.boundHandleFormSubmit);
       form.addEventListener("submit", this.boundHandleFormSubmit);
-      form.submit.bind(form);
       form.submit = () => {
-        this.handleFormSubmit(new Event("submit"));
+        this.handleFormSubmit({
+          target: form,
+          currentTarget: form,
+          preventDefault: () => {
+          }
+          // Función dummy
+        });
       };
     });
   }
