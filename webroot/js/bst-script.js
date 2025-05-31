@@ -70,6 +70,9 @@ class ContainerAjax extends BaseManager {
         url,
         container: this.container
       });
+      this.dispatchEvent("bst:container-ajax:loading-start", {
+        container: this.container
+      });
       const response = await fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" }
       });
@@ -88,6 +91,10 @@ class ContainerAjax extends BaseManager {
       this.handleError(error);
       this.dispatchEvent("bst:container-ajax:error", {
         error: error.message,
+        container: this.container
+      });
+    } finally {
+      this.dispatchEvent("bst:container-ajax:loading-start", {
         container: this.container
       });
     }
@@ -125,6 +132,9 @@ class ContainerAjax extends BaseManager {
       } else {
         fetchOptions.body = new FormData(form);
       }
+      this.dispatchEvent("bst:container-ajax:loading-start", {
+        container: this.container
+      });
       const response = await fetch(url, fetchOptions);
       const result = await this.processFormResponse(response);
       if (this.config.form.autoRender) {
@@ -145,6 +155,10 @@ class ContainerAjax extends BaseManager {
         container: this.container
       });
       (_d = (_c = this.config.form).onError) == null ? void 0 : _d.call(_c, error);
+    } finally {
+      this.dispatchEvent("bst:container-ajax:loading-end", {
+        container: this.container
+      });
     }
   }
   async processFormResponse(response) {
