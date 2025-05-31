@@ -158,6 +158,7 @@ class ActionItem implements ActionItemInterface
                 'options' => [
                     'label' => false,
                     'spacing' => 'mb-0',
+                    'onChange' => 'this.form.requestSubmit()',
                 ],
             ],
             static::SUBMIT => [
