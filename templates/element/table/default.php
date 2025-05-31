@@ -47,7 +47,7 @@ $totalColumns = count($columns) + (!empty($rowActions) ? 1 : 0);
                 </tr>
             </thead>
             <tbody>
-                <?php if (empty($data) || $data->count() === 0): ?>
+                <?php if (count($data) === 0): ?>
                     <tr>
                         <td colspan="<?= $totalColumns ?>" class="text-muted text-center">
                             <?= h($emptyMessage) ?>
