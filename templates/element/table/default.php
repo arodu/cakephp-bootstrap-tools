@@ -50,7 +50,7 @@ if (is_object($data) && method_exists($data, 'toArray')) {
                 </tr>
             </thead>
             <tbody>
-                <?php if (count($data) === 0): ?>
+                <?php if (empty($data)): ?>
                     <tr>
                         <td colspan="<?= $totalColumns ?>" class="text-muted text-center">
                             <?= h($emptyMessage) ?>
