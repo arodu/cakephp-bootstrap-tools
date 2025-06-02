@@ -14,8 +14,11 @@ $class ??= 'table';
 $header ??= true;
 
 $totalColumns = count($columns) + (!empty($rowActions) ? 1 : 0);
-?>
 
+if (is_object($data) && method_exists($data, 'toArray')) {
+    $data = $data->toArray();
+}
+?>
 <?php if ($header ?? true): ?>
     <div class="row">
         <div class="col d-flex align-items-center justify-content-between mb-3">
