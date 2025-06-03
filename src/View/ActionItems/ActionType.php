@@ -10,4 +10,5 @@ enum ActionType
     case LimitControl;
     case Button;
     case ModalLink;
+    case Dropdown;
 }

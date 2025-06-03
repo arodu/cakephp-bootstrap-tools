@@ -159,6 +159,9 @@ class ActionItemsHelper extends Helper
                 $options = $this->formatOptions($data);
                 return $this->ModalAjax->link($options['label'], $options['url'], $options['options']);
 
+            case ActionType::Dropdown:
+                $options = $this->formatOptions($data);
+
             default:
                 return '';
         }
@@ -176,5 +179,19 @@ class ActionItemsHelper extends Helper
         }
 
         return $this->actionItemClass;
+    }
+
+    public function dropdown(string $key, array $options = []): self
+    {
+        $scope = $this->getScopeName($options['scope'] ?? null);
+        $this->setScopeData($key, $scope);
+
+        if (empty($options['label'])) {
+            $options['label'] = $key;
+        }
+
+        $this->options[$scope] = Hash::merge($this->options[$scope] ?? [], $options);
+
+        return $this;
     }
 }

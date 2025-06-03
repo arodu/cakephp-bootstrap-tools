@@ -5,10 +5,8 @@ namespace BootstrapTools\View\Helper;
 
 use BootstrapTools\View\Table\TableBuilder;
 use BootstrapTools\View\Table\TableBuilderInterface;
-use Cake\ORM\Table;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
-use Cake\View\View;
 
 /**
  * Table helper
