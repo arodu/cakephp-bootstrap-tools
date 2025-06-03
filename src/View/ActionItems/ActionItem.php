@@ -17,6 +17,7 @@ class ActionItem implements ActionItemInterface
     const LIMIT_CONTROL = 'limit_control';
     const SUBMIT = 'submit';
     const CANCEL = 'cancel';
+    const OPEN_MODAL = 'open_modal';
     const CLOSE_MODAL = 'close_modal';
     const AJAX_SUBMIT = 'ajax_submit';
     const BUTTON = 'button';
@@ -142,6 +143,18 @@ class ActionItem implements ActionItemInterface
                 'url' => ['action' => 'index'],
                 'label' => __('Cancel'),
                 'color' => 'secondary',
+            ],
+            static::OPEN_MODAL => [
+                'type' => ActionType::ModalLink,
+                'url' => '#',
+                'label' => __('Open Modal'),
+                'icon' => 'bi bi-window me-1',
+                'color' => 'primary',
+                'options' => [
+                    'target' => 'modal',
+                    'data-bs-toggle' => 'modal',
+                    'data-bs-target' => '#modal',
+                ],
             ],
             static::CLOSE_MODAL => [
                 'type' => ActionType::Link,

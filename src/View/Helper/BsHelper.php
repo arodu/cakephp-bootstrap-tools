@@ -23,7 +23,7 @@ class BsHelper extends Helper
      */
     protected array $_defaultConfig = [
         'templates' => [
-            'badge' => '<span class="{{class}}" aria-label="{{aria-label}}"{{attrs}}>{{icon}}{{label}}</span>',
+            'badge' => '<span class="{{class}}" {{attrs}}>{{icon}}{{label}}</span>',
             'button' => '<a href="{{url}}" class="{{class}}"{{attrs}}>{{icon}}{{label}}</a>',
             'text' => '<span class="{{class}}"{{attrs}}>{{icon}}{{label}}</span>',
             'alert' => '<div class="{{class}}" role="alert"{{attrs}}>{{closeButton}}<h4 class="alert-heading">{{icon}}{{label}}</h4><p class="mb-0">{{content}}</p></div>',
@@ -32,11 +32,15 @@ class BsHelper extends Helper
     ];
 
     /**
-     * @param VisualElement|array $options
+     * @param VisualElement|VisualElementInterface|array $options
      * @return VisualElement
      */
-    public function visualElement(VisualElementInterface|array $element, array $options = []): VisualElement
+    public function visualElement(VisualElement|VisualElementInterface|array $element, array $options = []): VisualElement
     {
+        if ($element instanceof VisualElement) {
+            return $element;
+        }
+
         if ($element instanceof VisualElementInterface) {
             return $element->getVisualElement($options);
         }
@@ -59,11 +63,11 @@ class BsHelper extends Helper
      * - `icon` (string|false): Overrides the default icon, or `false` to disable it.
      * - `pill` (bool): Enables the pill style for the badge.
      *
-     * @param \BsUtils\Utility\VisualElementInterface|array $visualElement The visual element object or an array of properties.
+     * @param VisualElement|VisualElementInterface|array $visualElement The visual element object or an array of properties.
      * @param array<string, mixed> $options Additional options for customizing the badge.
      * @return string The generated HTML badge element.
      */
-    public function badge(VisualElementInterface|array $visualElement, array $options = []): string
+    public function badge(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
 
@@ -71,11 +75,11 @@ class BsHelper extends Helper
         $class .= ($options['pill'] ?? $this->getConfig('bagde.pill') ?? false) ? ' rounded-pill' : '';
         $class .= ' ' . ($options['class'] ?? '');
 
-        $options += [
+        $options = array_merge($options, [
             'class' => $class,
             'title' => $visualElement->getDescription() ?? $visualElement->getLabel() ?? null,
             'aria-label' => $visualElement->getLabel() ?? '',
-        ];
+        ]);
 
         if ($options['tooltip'] ?? $this->getConfig('bagde.tooltip') ?? false) {
             $options = $this->tooltipOptions($visualElement, $options);
@@ -86,19 +90,18 @@ class BsHelper extends Helper
 
         return $this->formatTemplate('badge', [
             'class' => $options['class'],
-            'aria-label' => $options['aria-label'],
             'icon' => $icon,
             'label' => $visualElement->getLabel(),
-            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'icon', 'label']),
         ]);
     }
 
     /**
-     * @param VisualElementInterface|array $visualElement
+     * @param VisualElement|VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
      */
-    public function text(VisualElementInterface|array $visualElement, array $options = []): string
+    public function text(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
         $options += ['class' => 'text-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary')];
@@ -121,11 +124,11 @@ class BsHelper extends Helper
     }
 
     /**
-     * @param VisualElementInterface|array $visualElement
+     * @param VisualElement|VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
      */
-    public function alert(VisualElementInterface|array $visualElement, array $options = []): string
+    public function alert(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
         $options += ['class' => 'alert'];
@@ -164,11 +167,11 @@ class BsHelper extends Helper
      * - `color` (string): The color of the icon.
      * - `description` (string): A description used as a tooltip or additional information.
      * 
-     * @param VisualElementInterface|array $visualElement
+     * @param VisualElement|VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
      */
-    public function icon(VisualElementInterface|array $visualElement, array $options = []): string
+    public function icon(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
         if (empty($visualElement->getIcon())) {
@@ -192,7 +195,7 @@ class BsHelper extends Helper
         ]);
     }
 
-    public function button(VisualElementInterface|array $visualElement, array $options = []): string
+    public function button(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
         $options += ['class' => 'btn'];

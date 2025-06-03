@@ -47,13 +47,11 @@ $dialogClasses = array_filter([
             </div>
         </div>
     </div>
-
 </div>
-
 <?= $this->Html->script($script, ['block' => true, 'once' => true]) ?>
 <script>
     <?= $this->Html->scriptStart(['block' => true]) ?>
-    document.addEventListener('DOMContentLoaded', () => {
+    (function () {
         new ModalAjaxManager({
             target: "<?= $target ?>",
             csrfToken: "<?= $this->getRequest()->getAttribute('csrfToken') ?>",
@@ -63,7 +61,7 @@ $dialogClasses = array_filter([
                 reloadPageOnClose: <?= $reloadPageOnClose ? 'true' : 'false' ?>,
             }
         });
-    });
+    })();
 
     <?php if ($jsCallback): ?>
         document.addEventListener('modalAjaxResponse', (e) => {
