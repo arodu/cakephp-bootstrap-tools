@@ -71,7 +71,7 @@ class DropdownHelper extends Helper
         $element = $config['element'];
         unset($config['element']);
 
-        return $this->getView()->element($element, $config);
+        return $this->getView()->element($element, ['config' => $config]);
     }
 
     /**

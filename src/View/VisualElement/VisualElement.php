@@ -13,7 +13,7 @@ class VisualElement
     private string $label;
     private string $icon;
     private string $color;
-    private string $description;
+    private string|null $description;
 
     /**
      * Constructor
@@ -21,14 +21,14 @@ class VisualElement
      * @param string $label
      * @param string $icon
      * @param string $color
-     * @param string $description
+     * @param string|null $description
      */
     public function __construct(
         int|string $value,
         string $label = '',
         string $icon = '',
         string $color = '',
-        string $description = ''
+        ?string $description = null
     ) {
         $this->value = $value;
         $this->label = $label;
@@ -80,9 +80,9 @@ class VisualElement
     /**
      * Get description
      *
-     * @return string
+     * @return string|null
      */
-    public function getDescription(): string
+    public function getDescription(): ?string
     {
         return $this->description;
     }

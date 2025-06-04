@@ -104,8 +104,11 @@ class BsHelper extends Helper
     public function text(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
     {
         $visualElement = $this->visualElement($visualElement);
-        $options += ['class' => 'text-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary')];
-        $options['title'] = $visualElement->getDescription() ?? $visualElement->getLabel() ?? null;
+
+        $options = array_merge($options, [
+            'class' => 'text-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary'),
+            'title' => $visualElement->getDescription() ?? $visualElement->getLabel() ?? null,
+        ]);
 
         if ($options['tooltip'] ?? $this->getConfig('defaultTooltip') ?? false) {
             $options = $this->tooltipOptions($visualElement, $options);
@@ -279,6 +282,8 @@ class BsHelper extends Helper
     {
         $currentYear = (int) date('Y');
 
-        return $startYear < $currentYear ? "$startYear-$currentYear" : "$startYear";
+        return $startYear < $currentYear
+            ? $startYear . '-' . $currentYear
+            : $startYear;
     }
 }
