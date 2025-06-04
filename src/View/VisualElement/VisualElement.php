@@ -10,31 +10,36 @@ namespace BootstrapTools\View\VisualElement;
 class VisualElement
 {
     private int|string $value;
-    private string $label;
-    private string $icon;
-    private string $color;
-    private string|null $description;
+    private string|null $label = null;
+    private string|null $icon = null;
+    private string|null $color = null;
+    private string|null $description = null;
+    private array|string|null $url = null;
 
     /**
      * Constructor
      *
-     * @param string $label
-     * @param string $icon
-     * @param string $color
+     * @param int|string $value
+     * @param string|null $label
+     * @param string|null $icon
+     * @param string|null $color
      * @param string|null $description
+     * @param string|null $url
      */
     public function __construct(
         int|string $value,
-        string $label = '',
-        string $icon = '',
-        string $color = '',
-        ?string $description = null
+        string|null $label = null,
+        string|null $icon = null,
+        string|null $color = null,
+        string|null $description = null,
+        array|string|null $url = null
     ) {
         $this->value = $value;
         $this->label = $label;
         $this->icon = $icon;
         $this->color = $color;
         $this->description = $description;
+        $this->url = $url;
     }
 
     /**
@@ -52,9 +57,9 @@ class VisualElement
      *
      * @return string
      */
-    public function getLabel(): string
+    public function getLabel(): ?string
     {
-        return $this->label;
+        return $this->label ?? $this->value;
     }
 
     /**
@@ -62,7 +67,7 @@ class VisualElement
      *
      * @return string
      */
-    public function getIcon(): string
+    public function getIcon(): ?string
     {
         return $this->icon;
     }
@@ -72,7 +77,7 @@ class VisualElement
      *
      * @return string
      */
-    public function getColor(): string
+    public function getColor(): ?string
     {
         return $this->color;
     }
@@ -88,6 +93,16 @@ class VisualElement
     }
 
     /**
+     * Get URL
+     *
+     * @return array|string|null
+     */
+    public function getUrl(): array|string|null
+    {
+        return $this->url;
+    }
+
+    /**
      * Get array
      *
      * @return array
@@ -100,6 +115,7 @@ class VisualElement
             'icon' => $this->getIcon(),
             'color' => $this->getColor(),
             'description' => $this->getDescription(),
+            'url' => $this->getUrl(),
         ];
     }
 }

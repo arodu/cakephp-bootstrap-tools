@@ -10,9 +10,9 @@ use Cake\View\Helper;
 use Cake\View\StringTemplateTrait;
 
 /**
- * App helper
+ * Bootstrap helper
  */
-class BsHelper extends Helper
+class BootstrapHelper extends Helper
 {
     use StringTemplateTrait;
 
@@ -35,8 +35,10 @@ class BsHelper extends Helper
      * @param VisualElement|VisualElementInterface|array $options
      * @return VisualElement
      */
-    public function visualElement(VisualElement|VisualElementInterface|array $element, array $options = []): VisualElement
-    {
+    protected function visualElement(
+        VisualElement|VisualElementInterface|array $element,
+        array $options = []
+    ): VisualElement {
         if ($element instanceof VisualElement) {
             return $element;
         }
@@ -67,8 +69,10 @@ class BsHelper extends Helper
      * @param array<string, mixed> $options Additional options for customizing the badge.
      * @return string The generated HTML badge element.
      */
-    public function badge(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
-    {
+    public function badge(
+        VisualElement|VisualElementInterface|array $visualElement,
+        array $options = []
+    ): string {
         $visualElement = $this->visualElement($visualElement);
 
         $class = 'badge text-bg-' . ($visualElement->getColor() ?? $this->getConfig('bagde.color') ?? 'secondary');
@@ -101,8 +105,10 @@ class BsHelper extends Helper
      * @param array $options
      * @return string
      */
-    public function text(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
-    {
+    public function text(
+        VisualElement|VisualElementInterface|array $visualElement,
+        array $options = []
+    ): string {
         $visualElement = $this->visualElement($visualElement);
 
         $options = array_merge($options, [
@@ -131,8 +137,10 @@ class BsHelper extends Helper
      * @param array $options
      * @return string
      */
-    public function alert(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
-    {
+    public function alert(
+        VisualElement|VisualElementInterface|array $visualElement,
+        array $options = []
+    ): string {
         $visualElement = $this->visualElement($visualElement);
         $options += ['class' => 'alert'];
         $options['class'] .= ' alert-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary');
@@ -174,8 +182,10 @@ class BsHelper extends Helper
      * @param array $options
      * @return string
      */
-    public function icon(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
-    {
+    public function icon(
+        VisualElement|VisualElementInterface|array $visualElement,
+        array $options = []
+    ): string {
         $visualElement = $this->visualElement($visualElement);
         if (empty($visualElement->getIcon())) {
             return '';
@@ -198,8 +208,37 @@ class BsHelper extends Helper
         ]);
     }
 
-    public function button(VisualElement|VisualElementInterface|array $visualElement, array $options = []): string
-    {
+    public function link(
+        VisualElement|VisualElementInterface|array $visualElement,
+        array $options = []
+    ): string {
+        $visualElement = $this->visualElement($visualElement);
+        $options += ['class' => 'text-decoration-none'];
+        $options['class'] .= ' text-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary');
+        $options['title'] = $visualElement->getDescription() ?? $visualElement->getLabel() ?? '';
+
+        if ($options['tooltip'] ?? $this->getConfig('defaultTooltip') ?? false) {
+            $options = $this->tooltipOptions($visualElement, $options);
+            unset($options['tooltip']);
+        }
+
+        $icon = $this->renderIcon($visualElement, $options);
+        $label = $visualElement->getLabel();
+
+        return $this->formatTemplate('button', [
+            'url' => $options['url'] ?? '#',
+            'class' => $options['class'],
+            'aria-label' => $options['title'],
+            'icon' => $icon,
+            'label' => $label,
+            'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
+        ]);
+    }
+
+    public function button(
+        VisualElement|VisualElementInterface|array $visualElement,
+        array $options = []
+    ): string {
         $visualElement = $this->visualElement($visualElement);
         $options += ['class' => 'btn'];
         $options['class'] .= ' btn-' . ($visualElement->getColor() ?? $this->getConfig('defaultColor') ?? 'secondary');
@@ -214,7 +253,7 @@ class BsHelper extends Helper
         $label = $visualElement->getLabel();
 
         return $this->formatTemplate('button', [
-            'url' => $options['url'] ?? '#',
+            'url' => '#',
             'class' => $options['class'],
             'aria-label' => $options['title'],
             'icon' => $icon,

@@ -19,7 +19,8 @@ trait VisualElementDatasetTrait
             label: $this->label(),
             icon: $options['icon'] ?? $data['icon'] ?? null,
             color: $options['color'] ?? $data['color'] ?? null,
-            description: $options['description'] ?? $data['description'],
+            description: $options['description'] ?? $data['description'] ?? null,
+            url: $options['url'] ?? $data['url'] ?? null,
         );
     }
 }
