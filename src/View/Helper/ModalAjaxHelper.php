@@ -116,4 +116,16 @@ class ModalAjaxHelper extends Helper
 
         return $this->getView()->element($this->getConfig('element'), $options);
     }
+
+    /**
+     * @param string $title The title to set.
+     * @return string The HTML for the modal title.
+     */
+    public function setTitle(string $title): string
+    {
+        return $this->getView()->Html->tag('template', $title, [
+            'id' => 'ajax-modal-title',
+            'class' => 'visually-hidden',
+        ]);
+    }
 }
