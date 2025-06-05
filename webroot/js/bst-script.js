@@ -275,7 +275,9 @@ class ModalAjaxManager extends BaseManager {
     return new ContainerAjax(modalBody, {
       ...this.config.containerAjaxConfig,
       csrfToken: this.config.csrfToken,
-      onFormSuccess: (result) => this.handleFormSuccess(result)
+      form: {
+        onSuccess: (result) => this.handleFormSuccess(result)
+      }
     });
   }
   init() {

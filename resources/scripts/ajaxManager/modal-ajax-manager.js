@@ -29,7 +29,7 @@ export class ModalAjaxManager extends BaseManager {
         this.modal = document.getElementById(this.config.target);
         this.containerAjax = this.initContainerAjax();
         this.shouldReloadPageOnClose = false;
-        
+
         this.init();
     }
 
@@ -38,7 +38,9 @@ export class ModalAjaxManager extends BaseManager {
         return new ContainerAjax(modalBody, {
             ...this.config.containerAjaxConfig,
             csrfToken: this.config.csrfToken,
-            onFormSuccess: (result) => this.handleFormSuccess(result)
+            form: {
+                onSuccess: (result) => this.handleFormSuccess(result)
+            }
         });
     }
 
