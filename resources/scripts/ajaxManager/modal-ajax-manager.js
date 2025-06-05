@@ -61,8 +61,9 @@ export class ModalAjaxManager extends BaseManager {
     }
 
     bindContainerEvents() {
-        this.containerAjax.container.addEventListener('containerAjaxLoaded', (e) => {
-            const title = e.detail.data.title || this.extractTitle(e.detail.data.html);
+        document.addEventListener('bst:container-ajax:loaded', (e) => {
+            const title = e.detail.data.title || this.extractTitle(e.detail.data);
+
             if (title) this.updateModalTitle(title);
         });
     }
@@ -86,6 +87,7 @@ export class ModalAjaxManager extends BaseManager {
     extractTitle(html) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
-        return tempDiv.querySelector('h1')?.textContent;
+
+        return tempDiv.querySelector('#modal-title')?.textContent;
     }
 }

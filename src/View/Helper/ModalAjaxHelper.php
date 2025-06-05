@@ -64,9 +64,9 @@ class ModalAjaxHelper extends Helper
             'data-bs-target' => '#' . $target,
             'escape' => false,
             'data-url' => $this->getView()->Url->build($url),
-            'data-modal-options' => json_encode($options['modalOptions'] ?? []), // Nueva línea
+            'data-modal-options' => json_encode($options['modalOptions'] ?? []),
         ];
-        unset($options['modalOptions']);
+        unset($options['modalOptions'], $options['options']);
 
         return $this->getView()->Html->link($title, '#', $options);
     }
@@ -123,9 +123,9 @@ class ModalAjaxHelper extends Helper
      */
     public function setTitle(string $title): string
     {
-        return $this->getView()->Html->tag('template', $title, [
-            'id' => 'ajax-modal-title',
-            'class' => 'visually-hidden',
+        return $this->getView()->Html->tag('div', $title, [
+            'id' => 'modal-title',
+            'class' => 'd-none',
         ]);
     }
 }

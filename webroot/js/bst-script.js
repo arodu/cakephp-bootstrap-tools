@@ -295,8 +295,8 @@ class ModalAjaxManager extends BaseManager {
     });
   }
   bindContainerEvents() {
-    this.containerAjax.container.addEventListener("containerAjaxLoaded", (e) => {
-      const title = e.detail.data.title || this.extractTitle(e.detail.data.html);
+    document.addEventListener("bst:container-ajax:loaded", (e) => {
+      const title = e.detail.data.title || this.extractTitle(e.detail.data);
       if (title) this.updateModalTitle(title);
     });
   }
@@ -318,7 +318,7 @@ class ModalAjaxManager extends BaseManager {
     var _a;
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = html;
-    return (_a = tempDiv.querySelector("h1")) == null ? void 0 : _a.textContent;
+    return (_a = tempDiv.querySelector("#modal-title")) == null ? void 0 : _a.textContent;
   }
 }
 window.ContainerAjax = ContainerAjax;
