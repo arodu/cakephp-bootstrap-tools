@@ -64,7 +64,7 @@ export class ModalAjaxManager extends BaseManager {
 
     bindContainerEvents() {
         document.addEventListener('bst:container-ajax:loaded', (e) => {
-            const title = e.detail.data.title || this.extractTitle(e.detail.data);
+            const title = e.detail.data?.title ?? this.extractTitle(e.detail.data) ?? null;
 
             if (title) this.updateModalTitle(title);
         });

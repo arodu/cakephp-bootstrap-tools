@@ -38,7 +38,7 @@ $dialogClasses = array_filter([
                 <h5 class="modal-title"><?= __('Loading...') ?></h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="<?= __('Close') ?>"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="<?= $target ?>-body">
                 <div class="text-center">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden"><?= __('Loading...') ?></span>

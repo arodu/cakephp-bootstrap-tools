@@ -1,8 +1,33 @@
 import { BaseManager } from './base-manager.js';
 
 export class ContainerAjax extends BaseManager {
+
+    static instances = {};
+
+    static getInstance(key) {
+        return this.instances[key];
+    }
+
+    static keys() {
+        return Object.keys(this.instances);
+    }
+
     constructor(containerElement, config = {}) {
         super();
+        
+        if (!containerElement || !containerElement.id) {
+            console.error("ContainerAjax Error: El elemento contenedor debe tener un ID para ser registrado.", containerElement);
+            super();
+            return;
+        }
+
+        this.key = containerElement.id;
+
+        if (ContainerAjax.instances[this.key]) {
+            console.warn(`ContainerAjax: Ya existe una instancia para el ID "${this.key}". Se retorna la instancia existente.`);
+            return ContainerAjax.instances[this.key];
+        }
+
         const defaultConfig = {
             autoLoad: true,
             csrfToken: null,
@@ -27,7 +52,15 @@ export class ContainerAjax extends BaseManager {
         this.boundHandleLinkClick = this.handleLinkClick.bind(this);
         this.boundHandleFormSubmit = this.handleFormSubmit.bind(this);
 
+
+        ContainerAjax.instances[this.key] = this;
+
         this.initialize();
+
+        this.dispatchEvent("bst:container-ajax:initialized", {
+            instance: this,
+            container: this.container
+        });
     }
 
     initialize() {
@@ -136,7 +169,7 @@ export class ContainerAjax extends BaseManager {
             }
 
             this.dispatchEvent("bst:container-ajax:form-success", {
-                data: result,
+                result: result,
                 form,
                 container: this.container,
                 response
@@ -255,5 +288,21 @@ export class ContainerAjax extends BaseManager {
         if (this.initialUrl) {
             this.loadContent(this.initialUrl);
         }
+    }
+
+    destroy() {
+        this.container.removeEventListener("click", this.boundHandleLinkClick);
+        this.container.querySelectorAll("form").forEach(form => {
+            form.removeEventListener("submit", this.boundHandleFormSubmit);
+        });
+
+        delete ContainerAjax.instances[this.key];
+
+        this.dispatchEvent("bst:container-ajax:destroyed", {
+            key: this.key,
+            container: this.container
+        });
+
+        console.log(`ContainerAjax: Instancia "${this.key}" destruida.`);
     }
 }

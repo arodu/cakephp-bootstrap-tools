@@ -1,3 +1,6 @@
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
 class BaseManager {
   mergeConfig(defaults, config) {
     const isObject = (obj) => obj && typeof obj === "object" && !Array.isArray(obj);
@@ -29,10 +32,26 @@ class BaseManager {
     document.dispatchEvent(new CustomEvent(name, { detail }));
   }
 }
-class ContainerAjax extends BaseManager {
+const _ContainerAjax = class _ContainerAjax extends BaseManager {
+  static getInstance(key) {
+    return this.instances[key];
+  }
+  static keys() {
+    return Object.keys(this.instances);
+  }
   constructor(containerElement, config = {}) {
     var _a, _b;
     super();
+    if (!containerElement || !containerElement.id) {
+      console.error("ContainerAjax Error: El elemento contenedor debe tener un ID para ser registrado.", containerElement);
+      super();
+      return;
+    }
+    this.key = containerElement.id;
+    if (_ContainerAjax.instances[this.key]) {
+      console.warn(`ContainerAjax: Ya existe una instancia para el ID "${this.key}". Se retorna la instancia existente.`);
+      return _ContainerAjax.instances[this.key];
+    }
     const defaultConfig = {
       autoLoad: true,
       csrfToken: null,
@@ -53,7 +72,12 @@ class ContainerAjax extends BaseManager {
     this.currentUrl = this.initialUrl;
     this.boundHandleLinkClick = this.handleLinkClick.bind(this);
     this.boundHandleFormSubmit = this.handleFormSubmit.bind(this);
+    _ContainerAjax.instances[this.key] = this;
     this.initialize();
+    this.dispatchEvent("bst:container-ajax:initialized", {
+      instance: this,
+      container: this.container
+    });
   }
   initialize() {
     if (this.config.autoLoad && this.initialUrl) {
@@ -141,7 +165,7 @@ class ContainerAjax extends BaseManager {
         this.updateContainer(result.html);
       }
       this.dispatchEvent("bst:container-ajax:form-success", {
-        data: result,
+        result,
         form,
         container: this.container,
         response
@@ -245,7 +269,21 @@ class ContainerAjax extends BaseManager {
       this.loadContent(this.initialUrl);
     }
   }
-}
+  destroy() {
+    this.container.removeEventListener("click", this.boundHandleLinkClick);
+    this.container.querySelectorAll("form").forEach((form) => {
+      form.removeEventListener("submit", this.boundHandleFormSubmit);
+    });
+    delete _ContainerAjax.instances[this.key];
+    this.dispatchEvent("bst:container-ajax:destroyed", {
+      key: this.key,
+      container: this.container
+    });
+    console.log(`ContainerAjax: Instancia "${this.key}" destruida.`);
+  }
+};
+__publicField(_ContainerAjax, "instances", {});
+let ContainerAjax = _ContainerAjax;
 class ModalAjaxManager extends BaseManager {
   constructor(config) {
     super();
@@ -303,7 +341,8 @@ class ModalAjaxManager extends BaseManager {
   }
   bindContainerEvents() {
     document.addEventListener("bst:container-ajax:loaded", (e) => {
-      const title = e.detail.data.title || this.extractTitle(e.detail.data);
+      var _a;
+      const title = ((_a = e.detail.data) == null ? void 0 : _a.title) ?? this.extractTitle(e.detail.data) ?? null;
       if (title) this.updateModalTitle(title);
     });
   }
