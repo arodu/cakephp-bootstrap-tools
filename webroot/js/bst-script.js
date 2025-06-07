@@ -81,10 +81,10 @@ class ContainerAjax extends BaseManager {
       if (this.config.links.updateHistory) {
         window.history.pushState({ containerUrl: url }, "", url);
       }
-      const html = await response.text();
-      this.updateContainer(html);
+      const result = await this.processResponseData(response);
+      this.updateContainer(result.html);
       this.dispatchEvent("bst:container-ajax:loaded", {
-        data: html,
+        result,
         container: this.container
       });
     } catch (error) {
@@ -136,7 +136,7 @@ class ContainerAjax extends BaseManager {
         container: this.container
       });
       const response = await fetch(url, fetchOptions);
-      const result = await this.processFormResponse(response);
+      const result = await this.processResponseData(response);
       if (this.config.form.autoRender) {
         this.updateContainer(result.html);
       }
@@ -161,16 +161,21 @@ class ContainerAjax extends BaseManager {
       });
     }
   }
-  async processFormResponse(response) {
+  async processResponseData(response) {
     const contentType = response.headers.get("Content-Type") || "";
-    let result = { html: "", success: response.ok };
+    let result = {
+      success: response.ok,
+      html: "",
+      source: null
+    };
     if (!response.ok) {
       throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
     }
     if (contentType.includes("application/json")) {
       const data = await response.json();
-      result.html = data.html || "";
       result.success = data.success || false;
+      result.html = data.data.html || "";
+      result.source = data || null;
     } else if (contentType.includes("text/html")) {
       result.html = await response.text();
     }
