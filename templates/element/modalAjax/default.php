@@ -48,6 +48,7 @@ $dialogClasses = array_filter([
         </div>
     </div>
 </div>
+
 <?= $this->Html->script($script, ['block' => true, 'once' => true]) ?>
 <script>
     <?= $this->Html->scriptStart(['block' => true]) ?>
