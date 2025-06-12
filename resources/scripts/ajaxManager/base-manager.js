@@ -30,8 +30,4 @@ export class BaseManager {
             oldScript.parentNode.replaceChild(newScript, oldScript);
         });
     }
-
-    dispatchEvent(name, detail) {
-        document.dispatchEvent(new CustomEvent(name, { detail }));
-    }
 }

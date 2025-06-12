@@ -14,7 +14,7 @@ export class ContainerAjax extends BaseManager {
 
     constructor(containerElement, config = {}) {
         super();
-        
+
         if (!containerElement || !containerElement.id) {
             console.error("ContainerAjax Error: El elemento contenedor debe tener un ID para ser registrado.", containerElement);
             super();
@@ -57,10 +57,7 @@ export class ContainerAjax extends BaseManager {
 
         this.initialize();
 
-        this.dispatchEvent("bst:container-ajax:initialized", {
-            instance: this,
-            container: this.container
-        });
+        this.dispatchEvent("bst:container-ajax:initialized");
     }
 
     initialize() {
@@ -77,11 +74,6 @@ export class ContainerAjax extends BaseManager {
 
     async loadContent(url) {
         try {
-            this.dispatchEvent("bst:container-ajax:load", {
-                url,
-                container: this.container
-            });
-
             this.dispatchEvent("bst:container-ajax:loading-start", {
                 container: this.container
             });
@@ -101,10 +93,7 @@ export class ContainerAjax extends BaseManager {
             const result = await this.processResponseData(response);
             this.updateContainer(result.html);
 
-            this.dispatchEvent("bst:container-ajax:loaded", {
-                result: result,
-                container: this.container
-            });
+            this.dispatchEvent("bst:container-ajax:loaded", result.source || result);
 
         } catch (error) {
             this.handleError(error);
@@ -113,7 +102,7 @@ export class ContainerAjax extends BaseManager {
                 container: this.container
             });
         } finally {
-            this.dispatchEvent("bst:container-ajax:loading-start", {
+            this.dispatchEvent("bst:container-ajax:loading-end", {
                 container: this.container
             });
         }
@@ -169,9 +158,8 @@ export class ContainerAjax extends BaseManager {
             }
 
             this.dispatchEvent("bst:container-ajax:form-success", {
-                result: result,
+                result: result.source || result,
                 form,
-                container: this.container,
                 response
             });
 
@@ -179,16 +167,10 @@ export class ContainerAjax extends BaseManager {
 
         } catch (error) {
             this.handleFormError(error, form);
-            this.dispatchEvent("bst:container-ajax:form-error", {
-                error: error.message,
-                form,
-                container: this.container
-            });
+            this.dispatchEvent("bst:container-ajax:form-error", { error });
             this.config.form.onError?.(error);
         } finally {
-            this.dispatchEvent("bst:container-ajax:loading-end", {
-                container: this.container
-            });
+            this.dispatchEvent("bst:container-ajax:loading-end");
         }
     }
 
@@ -298,11 +280,18 @@ export class ContainerAjax extends BaseManager {
 
         delete ContainerAjax.instances[this.key];
 
-        this.dispatchEvent("bst:container-ajax:destroyed", {
-            key: this.key,
-            container: this.container
-        });
+        this.dispatchEvent("bst:container-ajax:destroyed");
+    }
 
-        console.log(`ContainerAjax: Instancia "${this.key}" destruida.`);
+    dispatchEvent(name, paypload = {}) {
+        const detail = {
+            instance: this,
+            key: this.key,
+            container: this.container,
+            timestamp: (new Date()).toISOString(),
+            payload: paypload,
+        };
+
+        document.dispatchEvent(new CustomEvent(name, { detail }));
     }
 }

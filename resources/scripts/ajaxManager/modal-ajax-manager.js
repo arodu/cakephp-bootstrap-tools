@@ -64,14 +64,17 @@ export class ModalAjaxManager extends BaseManager {
 
     bindContainerEvents() {
         document.addEventListener('bst:container-ajax:loaded', (e) => {
-            const title = e.detail.data?.title ?? this.extractTitle(e.detail.data) ?? null;
-
+            if (e.detail.instance !== this.containerAjax) {
+                return;
+            }
+            const payload = e.detail.payload;
+            const title = this.extractTitle(payload.data ?? null);
             if (title) this.updateModalTitle(title);
         });
     }
 
     async loadContent(url) {
-        this.dispatchEvent('modalAjaxLoad', { url, modal: this.modal });
+        this.dispatchEvent('bst:modal-ajax:load', { url });
         await this.containerAjax.loadContent(url);
     }
 
@@ -86,10 +89,33 @@ export class ModalAjaxManager extends BaseManager {
         this.modal.querySelector(this.config.modal.title).textContent = title;
     }
 
-    extractTitle(html) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
+    extractTitle(sourceData) {
+        if (!sourceData) {
+            return null;
+        }
 
-        return tempDiv.querySelector('#modal-title')?.textContent;
+        if (typeof sourceData.title === 'string' && sourceData.title.trim() !== '') {
+            return sourceData.title;
+        }
+
+        const html = sourceData.html;
+        if (typeof html === 'string' && html.length > 0) {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = html;
+            return tempDiv.querySelector('#modal-title')?.textContent.trim() ?? null;
+        }
+
+        return null;
+    }
+
+    dispatchEvent(name, paypload = {}) {
+        const detail = {
+            instance: this,
+            modal: this.modal,
+            timestamp: (new Date()).toISOString(),
+            payload: paypload,
+        };
+
+        document.dispatchEvent(new CustomEvent(name, { detail }));
     }
 }

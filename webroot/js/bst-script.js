@@ -28,9 +28,6 @@ class BaseManager {
       oldScript.parentNode.replaceChild(newScript, oldScript);
     });
   }
-  dispatchEvent(name, detail) {
-    document.dispatchEvent(new CustomEvent(name, { detail }));
-  }
 }
 const _ContainerAjax = class _ContainerAjax extends BaseManager {
   static getInstance(key) {
@@ -74,10 +71,7 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
     this.boundHandleFormSubmit = this.handleFormSubmit.bind(this);
     _ContainerAjax.instances[this.key] = this;
     this.initialize();
-    this.dispatchEvent("bst:container-ajax:initialized", {
-      instance: this,
-      container: this.container
-    });
+    this.dispatchEvent("bst:container-ajax:initialized");
   }
   initialize() {
     if (this.config.autoLoad && this.initialUrl) {
@@ -90,10 +84,6 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
   }
   async loadContent(url) {
     try {
-      this.dispatchEvent("bst:container-ajax:load", {
-        url,
-        container: this.container
-      });
       this.dispatchEvent("bst:container-ajax:loading-start", {
         container: this.container
       });
@@ -107,10 +97,7 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
       }
       const result = await this.processResponseData(response);
       this.updateContainer(result.html);
-      this.dispatchEvent("bst:container-ajax:loaded", {
-        result,
-        container: this.container
-      });
+      this.dispatchEvent("bst:container-ajax:loaded", result.source || result);
     } catch (error) {
       this.handleError(error);
       this.dispatchEvent("bst:container-ajax:error", {
@@ -118,7 +105,7 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
         container: this.container
       });
     } finally {
-      this.dispatchEvent("bst:container-ajax:loading-start", {
+      this.dispatchEvent("bst:container-ajax:loading-end", {
         container: this.container
       });
     }
@@ -165,24 +152,17 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
         this.updateContainer(result.html);
       }
       this.dispatchEvent("bst:container-ajax:form-success", {
-        result,
+        result: result.source || result,
         form,
-        container: this.container,
         response
       });
       (_b = (_a = this.config.form).onSuccess) == null ? void 0 : _b.call(_a, result);
     } catch (error) {
       this.handleFormError(error, form);
-      this.dispatchEvent("bst:container-ajax:form-error", {
-        error: error.message,
-        form,
-        container: this.container
-      });
+      this.dispatchEvent("bst:container-ajax:form-error", { error });
       (_d = (_c = this.config.form).onError) == null ? void 0 : _d.call(_c, error);
     } finally {
-      this.dispatchEvent("bst:container-ajax:loading-end", {
-        container: this.container
-      });
+      this.dispatchEvent("bst:container-ajax:loading-end");
     }
   }
   async processResponseData(response) {
@@ -275,11 +255,17 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
       form.removeEventListener("submit", this.boundHandleFormSubmit);
     });
     delete _ContainerAjax.instances[this.key];
-    this.dispatchEvent("bst:container-ajax:destroyed", {
+    this.dispatchEvent("bst:container-ajax:destroyed");
+  }
+  dispatchEvent(name, paypload = {}) {
+    const detail = {
+      instance: this,
       key: this.key,
-      container: this.container
-    });
-    console.log(`ContainerAjax: Instancia "${this.key}" destruida.`);
+      container: this.container,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      payload: paypload
+    };
+    document.dispatchEvent(new CustomEvent(name, { detail }));
   }
 };
 __publicField(_ContainerAjax, "instances", {});
@@ -341,13 +327,16 @@ class ModalAjaxManager extends BaseManager {
   }
   bindContainerEvents() {
     document.addEventListener("bst:container-ajax:loaded", (e) => {
-      var _a;
-      const title = ((_a = e.detail.data) == null ? void 0 : _a.title) ?? this.extractTitle(e.detail.data) ?? null;
+      if (e.detail.instance !== this.containerAjax) {
+        return;
+      }
+      const payload = e.detail.payload;
+      const title = this.extractTitle(payload.data ?? null);
       if (title) this.updateModalTitle(title);
     });
   }
   async loadContent(url) {
-    this.dispatchEvent("modalAjaxLoad", { url, modal: this.modal });
+    this.dispatchEvent("bst:modal-ajax:load", { url });
     await this.containerAjax.loadContent(url);
   }
   handleFormSuccess(result) {
@@ -360,11 +349,30 @@ class ModalAjaxManager extends BaseManager {
   updateModalTitle(title) {
     this.modal.querySelector(this.config.modal.title).textContent = title;
   }
-  extractTitle(html) {
+  extractTitle(sourceData) {
     var _a;
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = html;
-    return (_a = tempDiv.querySelector("#modal-title")) == null ? void 0 : _a.textContent;
+    if (!sourceData) {
+      return null;
+    }
+    if (typeof sourceData.title === "string" && sourceData.title.trim() !== "") {
+      return sourceData.title;
+    }
+    const html = sourceData.html;
+    if (typeof html === "string" && html.length > 0) {
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = html;
+      return ((_a = tempDiv.querySelector("#modal-title")) == null ? void 0 : _a.textContent.trim()) ?? null;
+    }
+    return null;
+  }
+  dispatchEvent(name, paypload = {}) {
+    const detail = {
+      instance: this,
+      modal: this.modal,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      payload: paypload
+    };
+    document.dispatchEvent(new CustomEvent(name, { detail }));
   }
 }
 window.ContainerAjax = ContainerAjax;
