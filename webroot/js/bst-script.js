@@ -55,7 +55,8 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
       form: {
         autoRender: true,
         onSuccess: null,
-        onError: null
+        onError: null,
+        onFailed: null
       },
       links: {
         enabled: true,
@@ -90,7 +91,6 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
       const response = await fetch(url, {
         headers: { "X-Requested-With": "XMLHttpRequest" }
       });
-      if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
       this.currentUrl = url;
       if (this.config.links.updateHistory) {
         window.history.pushState({ containerUrl: url }, "", url);
@@ -112,7 +112,7 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
   }
   // Form handling
   async handleFormSubmit(event) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e, _f;
     event.preventDefault();
     const form = event.target;
     this.dispatchEvent("bst:container-ajax:form-submit", {
@@ -151,16 +151,26 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
       if (this.config.form.autoRender) {
         this.updateContainer(result.html);
       }
-      this.dispatchEvent("bst:container-ajax:form-success", {
-        result: result.source || result,
-        form,
-        response
-      });
-      (_b = (_a = this.config.form).onSuccess) == null ? void 0 : _b.call(_a, result);
+      console.log("Form submission result:", result);
+      if (result.success) {
+        this.dispatchEvent("bst:container-ajax:form-success", {
+          result: result.source || result,
+          form,
+          response
+        });
+        (_b = (_a = this.config.form).onSuccess) == null ? void 0 : _b.call(_a, result);
+      } else {
+        this.dispatchEvent("bst:container-ajax:form-failed", {
+          result: result.source || result,
+          form,
+          response
+        });
+        (_d = (_c = this.config.form).onFailed) == null ? void 0 : _d.call(_c, result);
+      }
     } catch (error) {
       this.handleFormError(error, form);
       this.dispatchEvent("bst:container-ajax:form-error", { error });
-      (_d = (_c = this.config.form).onError) == null ? void 0 : _d.call(_c, error);
+      (_f = (_e = this.config.form).onError) == null ? void 0 : _f.call(_e, error);
     } finally {
       this.dispatchEvent("bst:container-ajax:loading-end");
     }
@@ -173,11 +183,11 @@ const _ContainerAjax = class _ContainerAjax extends BaseManager {
       source: null
     };
     if (!response.ok) {
-      throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+      result.success = false;
     }
     if (contentType.includes("application/json")) {
       const data = await response.json();
-      result.success = data.success || false;
+      result.success = data.status == "success" || false;
       result.html = data.data.html || "";
       result.source = data || null;
     } else if (contentType.includes("text/html")) {
@@ -341,7 +351,6 @@ class ModalAjaxManager extends BaseManager {
   }
   handleFormSuccess(result) {
     var _a;
-    this.shouldReloadPageOnClose = true;
     if (this.config.modal.closeOnSuccess) {
       (_a = bootstrap.Modal.getInstance(this.modal)) == null ? void 0 : _a.hide();
     }

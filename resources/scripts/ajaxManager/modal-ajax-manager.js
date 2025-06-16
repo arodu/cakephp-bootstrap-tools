@@ -79,7 +79,7 @@ export class ModalAjaxManager extends BaseManager {
     }
 
     handleFormSuccess(result) {
-        this.shouldReloadPageOnClose = true;
+        //this.shouldReloadPageOnClose = true;
         if (this.config.modal.closeOnSuccess) {
             bootstrap.Modal.getInstance(this.modal)?.hide();
         }

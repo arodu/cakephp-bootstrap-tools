@@ -34,7 +34,8 @@ export class ContainerAjax extends BaseManager {
             form: {
                 autoRender: true,
                 onSuccess: null,
-                onError: null
+                onError: null,
+                onFailed: null,
             },
             links: {
                 enabled: true,
@@ -82,7 +83,7 @@ export class ContainerAjax extends BaseManager {
                 headers: { "X-Requested-With": "XMLHttpRequest" }
             });
 
-            if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
+            //if (!response.ok) throw new Error(`HTTP Error ${response.status}`);
 
             this.currentUrl = url;
 
@@ -157,14 +158,23 @@ export class ContainerAjax extends BaseManager {
                 this.updateContainer(result.html);
             }
 
-            this.dispatchEvent("bst:container-ajax:form-success", {
-                result: result.source || result,
-                form,
-                response
-            });
+            console.log("Form submission result:", result);
 
-            this.config.form.onSuccess?.(result);
-
+            if (result.success) {
+                this.dispatchEvent("bst:container-ajax:form-success", {
+                    result: result.source || result,
+                    form,
+                    response
+                });
+                this.config.form.onSuccess?.(result);
+            } else {
+                this.dispatchEvent("bst:container-ajax:form-failed", {
+                    result: result.source || result,
+                    form,
+                    response
+                });
+                this.config.form.onFailed?.(result);
+            }
         } catch (error) {
             this.handleFormError(error, form);
             this.dispatchEvent("bst:container-ajax:form-error", { error });
@@ -183,12 +193,12 @@ export class ContainerAjax extends BaseManager {
         };
 
         if (!response.ok) {
-            throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+            result.success = false;
         }
 
         if (contentType.includes("application/json")) {
             const data = await response.json();
-            result.success = data.success || false;
+            result.success = (data.status == 'success') || false;
             result.html = data.data.html || "";
             result.source = data || null;
         } else if (contentType.includes("text/html")) {
