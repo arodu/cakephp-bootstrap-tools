@@ -383,6 +383,7 @@ class BootstrapHelper extends Helper
             'aria-label' => $options['aria-label'] ?? $visualElement->getLabel(),
             'data-bs-toggle' => 'tooltip',
             'data-bs-placement' => $tooltipPlacement,
+            'data-bs-title' => $title,
         ];
 
         return array_merge($options, $tooltipSpecificOptions);
