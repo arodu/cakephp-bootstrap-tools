@@ -14,7 +14,7 @@
  * @license   https://opensource.org/licenses/mit-license.php MIT License
  * @var \App\View\AppView $this
  */
-
+$this->assign('subTitle', 'Mazer Templates plugin debug page');
 use Cake\Cache\Cache;
 use Cake\Core\Configure;
 use Cake\Core\Plugin;
