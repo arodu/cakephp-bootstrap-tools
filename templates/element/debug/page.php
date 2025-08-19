@@ -22,8 +22,6 @@ use Cake\Datasource\ConnectionManager;
 use Cake\Error\Debugger;
 use Cake\Http\Exception\NotFoundException;
 
-$this->MazerMenu->activeItem('debug');
-
 $checkConnection = function (string $name) {
     $error = null;
     $connected = false;
@@ -59,7 +57,6 @@ if (!Configure::read('debug')) :
 endif;
 
 $this->assign('title', 'CakePHP: the rapid development php framework');
-$this->assign('subTitle', 'Mazer Templates plugin debug page');
 ?>
 
 <header>
@@ -71,6 +68,15 @@ $this->assign('subTitle', 'Mazer Templates plugin debug page');
             Welcome to CakePHP <?= h(Configure::version()) ?> Chiffon (🍰)
         </h1>
     </div>
+    <?php if (!empty($plugin)) : ?>
+        <div class="container text-center">
+            <?= $this->Html->link(
+                $plugin['name'] . ':' . $plugin['version'],
+                $plugin['url'],
+                ['target' => '_blank', 'rel' => 'noopener']
+            ) ?>
+        </div>
+    <?php endif; ?>
 </header>
 
 <main class="card mt-4">
@@ -79,7 +85,7 @@ $this->assign('subTitle', 'Mazer Templates plugin debug page');
             <div class="row">
                 <div class="column">
                     <div class="alert alert-info text-center">
-                        <small>Please be aware that this page will not be shown if you turn off debug mode unless you replace templates/Pages/home.php with your own version.</small>
+                        <small><?= __('Please be aware that this page will not be shown if you turn off debug mode unless you replace templates/Pages/home.php with your own version.') ?></small>
                     </div>
                     <div id="url-rewriting-warning" style="padding: 1rem; background: #fcebea; color: #cc1f1a; border-color: #ef5753;">
                         <ul>
