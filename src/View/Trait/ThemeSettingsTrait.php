@@ -43,8 +43,8 @@ trait ThemeSettingsTrait
      */
     public function themeSettingsInitialize(array $config): void
     {
-        $config = Hash::merge(Configure::read($this->getConfig('configKey'), []), $config);
-        $this->setConfig($config);
+        $settings = Hash::merge(Configure::read($this->getConfig('configKey'), []), $config['settings'] ?? []);
+        $this->setConfig('settings', $settings);
     }
 
 
