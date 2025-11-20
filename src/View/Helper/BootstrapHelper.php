@@ -412,19 +412,22 @@ class BootstrapHelper extends Helper
     /**
      * @param integer $startYear
      * @return string
+     * 
+     * @deprecated use UtilityKit\Utility\DateFormatter::copyrightRange instead
      */
     public function copyrightYears(int $startYear): string
     {
-        $currentYear = (int) date('Y');
+        trigger_deprecation(
+            'arodu/cakephp-bootstrap-tools',
+            '0.0.0',
+            'The %s method is deprecated. Use %s instead.',
+            __METHOD__,
+            'UtilityKit\Utility\DateFormatter::copyrightRange'
+        );
 
-        return $startYear < $currentYear
-            ? $startYear . '-' . $currentYear
-            : (string) $startYear;
+        return \UtilityKit\Utility\DateFormatter::copyrightRange($startYear);
     }
 
-
-
-    // --- NEW METHOD --- List Group ---
     /**
      * Generates a list group item.
      *
