@@ -50,7 +50,7 @@ class TableBuilderTest extends TestCase
     public function testDataAcceptsTraversableBackedUpByIterator(): void
     {
         $iterator = new ArrayIterator(['a' => 1]);
-        $builder = new TableBuilder()->data($iterator);
+        $builder = (new TableBuilder())->data($iterator);
 
         $this->assertSame($iterator, $builder->getOptions()['data']);
     }
@@ -77,14 +77,14 @@ class TableBuilderTest extends TestCase
 
     public function testPaginationDefaultsToTrue(): void
     {
-        $builder = new TableBuilder()->pagination();
+        $builder = (new TableBuilder())->pagination();
 
         $this->assertTrue($builder->getOptions()['pagination']);
     }
 
     public function testPaginationDisabled(): void
     {
-        $builder = new TableBuilder()->pagination(false);
+        $builder = (new TableBuilder())->pagination(false);
 
         $this->assertFalse($builder->getOptions()['pagination']);
     }

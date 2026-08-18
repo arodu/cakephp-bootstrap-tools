@@ -103,7 +103,7 @@ class DropdownBuilderTest extends TestCase
 
     public function testSplitDisabled(): void
     {
-        $builder = new DropdownBuilder()->split(false);
+        $builder = (new DropdownBuilder())->split(false);
 
         $this->assertFalse($builder->getOptions()['split']);
     }

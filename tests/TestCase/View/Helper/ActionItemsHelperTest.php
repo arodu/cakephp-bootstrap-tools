@@ -6,6 +6,7 @@ namespace BootstrapTools\Test\TestCase\View\Helper;
 use BootstrapTools\View\ActionItems\ActionItem;
 use BootstrapTools\View\ActionItems\ActionType;
 use BootstrapTools\View\Helper\ActionItemsHelper;
+use Cake\Routing\Router;
 use Cake\TestSuite\TestCase;
 use Cake\View\View;
 use ReflectionProperty;
@@ -23,6 +24,8 @@ class ActionItemsHelperTest extends TestCase
     {
         parent::setUp();
         $this->clearRegistry();
+
+        Router::createRouteBuilder('/')->fallbacks();
 
         $view = new View();
         $view->loadHelper('Html');
