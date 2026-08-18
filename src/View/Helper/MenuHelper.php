@@ -1,8 +1,9 @@
 <?php
 declare(strict_types=1);
+
 /**
  * BootstrapTools CakePHP Plugin
- * 
+ *
  * @copyright 2025 Alberto Rodriguez
  * @author Alberto Rodriguez <arodu.dev@gmail.com>
  * @link https://github.com/arodu
@@ -25,11 +26,11 @@ class MenuHelper extends Helper
     use StringTemplateTrait;
     use InstanceConfigTrait;
 
-    const ITEM_TYPE_LINK = 'link';
-    const ITEM_TYPE_DIVIDER = 'divider';
-    const ITEM_TYPE_TITLE = 'title';
+    public const ITEM_TYPE_LINK = 'link';
+    public const ITEM_TYPE_DIVIDER = 'divider';
+    public const ITEM_TYPE_TITLE = 'title';
 
-    const ACTIVE_ITEM_KEY = 'activeItem';
+    public const ACTIVE_ITEM_KEY = 'activeItem';
 
     /**
      * Default configuration.
@@ -97,7 +98,7 @@ class MenuHelper extends Helper
     /**
      * @var array Keys representing the active menu item hierarchy.
      */
-    protected $activeKeys = [];
+    protected array $activeKeys = [];
 
     /**
      * @inheritDoc
@@ -115,7 +116,7 @@ class MenuHelper extends Helper
 
     /**
      * Returns the menu items from a configuration file.
-     * 
+     *
      * options:
      * - configFile: The configuration file to load.
      * - configKey: The key in the configuration file to use for menu items.
@@ -158,7 +159,7 @@ class MenuHelper extends Helper
 
     /**
      * Renders a menu based on the provided configuration file.
-     * 
+     *
      * options:
      * - configKey: The key in the configuration file to use for menu items.
      *
@@ -200,7 +201,7 @@ class MenuHelper extends Helper
             if (!$this->itemShow($item)) {
                 continue;
             }
-            $item['key'] = (string) $key;
+            $item['key'] = (string)$key;
             $result .= $this->buildMenuItem($item, $options, $level);
         }
 
@@ -257,6 +258,7 @@ class MenuHelper extends Helper
     {
         $isChild = $level > 0;
         $template = $isChild ? 'dropdownItemTitle' : 'menuItemTitle';
+
         return $this->formatTemplate($template, [
             'text' => $item['label'],
         ]);
@@ -272,6 +274,7 @@ class MenuHelper extends Helper
     {
         $isChild = $level > 0;
         $template = $isChild ? 'dropdownItemDivider' : 'menuItemDivider';
+
         return $this->formatTemplate($template, []);
     }
 
@@ -288,6 +291,7 @@ class MenuHelper extends Helper
         $isChild = $level > 0;
         $template = $isChild ? 'dropdownItemDisabled' : 'menuItemDisabled';
         $item['icon'] = $this->resolveIcon($item, $options, $level);
+
         return $this->formatTemplate($template, [
             'text' => $item['label'] ?? null,
             'class' => $this->cssClass($item['container']['class'] ?? null),
@@ -424,7 +428,7 @@ class MenuHelper extends Helper
             return true;
         }
 
-        $currentActiveKey = (string) ($this->activeKeys[$level] ?? null);
+        $currentActiveKey = (string)($this->activeKeys[$level] ?? null);
         if ($currentActiveKey === ($item['key'] ?? null)) {
             return true;
         }
@@ -435,7 +439,7 @@ class MenuHelper extends Helper
     /**
      * Converts a CSS class or array of classes into a properly formatted string.
      *
-     * @param string|array|null $class The CSS class or array of classes.
+     * @param array|string|null $class The CSS class or array of classes.
      * @return string The formatted class string, prefixed with a space if not empty.
      */
     protected function cssClass(string|array|null $class): string

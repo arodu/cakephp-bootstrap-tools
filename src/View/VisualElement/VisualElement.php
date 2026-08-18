@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\VisualElement;
@@ -10,16 +9,16 @@ namespace BootstrapTools\View\VisualElement;
 class VisualElement
 {
     private int|string $value;
-    private string|null $label = null;
-    private string|null $icon = null;
-    private string|null $color = null;
-    private string|null $description = null;
+    private ?string $label = null;
+    private ?string $icon = null;
+    private ?string $color = null;
+    private ?string $description = null;
     private array|string|null $url = null;
 
     /**
      * Constructor
      *
-     * @param int|string $value
+     * @param string|int $value
      * @param string|null $label
      * @param string|null $icon
      * @param string|null $color
@@ -28,11 +27,11 @@ class VisualElement
      */
     public function __construct(
         int|string $value,
-        string|null $label = null,
-        string|null $icon = null,
-        string|null $color = null,
-        string|null $description = null,
-        array|string|null $url = null
+        ?string $label = null,
+        ?string $icon = null,
+        ?string $color = null,
+        ?string $description = null,
+        array|string|null $url = null,
     ) {
         $this->value = $value;
         $this->label = $label;
@@ -45,7 +44,7 @@ class VisualElement
     /**
      * Get value
      *
-     * @return int|string
+     * @return string|int
      */
     public function getValue(): int|string
     {
@@ -59,7 +58,7 @@ class VisualElement
      */
     public function getLabel(): ?string
     {
-        return $this->label ?? $this->value;
+        return $this->label ?? (string)$this->value;
     }
 
     /**

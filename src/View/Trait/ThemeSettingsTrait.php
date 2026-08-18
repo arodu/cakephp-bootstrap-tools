@@ -1,19 +1,17 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Trait;
 
 use Cake\Core\Configure;
 use Cake\Utility\Hash;
+use Cake\View\View;
 
 trait ThemeSettingsTrait
 {
     /**
-     * Default configuration.
+     * Default configuration for the consuming class.
      *
-     * @var array<string, mixed>
-     * 
      * Example:
      * protected array $_defaultConfig = [
      *     'configKey' => 'Bootstrap',
@@ -30,7 +28,7 @@ trait ThemeSettingsTrait
     /**
      * @inheritDoc
      */
-    abstract public function getView(): \Cake\View\View;
+    abstract public function getView(): View;
 
     /**
      * @inheritDoc
@@ -47,10 +45,9 @@ trait ThemeSettingsTrait
         $this->setConfig('settings', $settings);
     }
 
-
     /**
      * Get settings value
-     * 
+     *
      * @param string $key Configuration key
      * @return mixed
      */
@@ -71,7 +68,7 @@ trait ThemeSettingsTrait
 
     /**
      * Render meta tags
-     * 
+     *
      * @return string
      */
     public function renderMeta(): string
@@ -87,7 +84,7 @@ trait ThemeSettingsTrait
 
     /**
      * Render CSS files
-     * 
+     *
      * @param array<string, mixed> $options
      * @return string
      */
@@ -104,7 +101,7 @@ trait ThemeSettingsTrait
 
     /**
      * Render scripts
-     * 
+     *
      * @param array<string, mixed> $options
      * @return string
      */

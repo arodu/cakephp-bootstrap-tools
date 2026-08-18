@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\Utility;
@@ -35,12 +34,24 @@ class Color
     private string $color;
     private string $type;
 
-    public function __construct(string $color, string $type = null)
+    /**
+     * Constructor.
+     *
+     * @param string $color
+     * @param string|null $type Optional explicit color type.
+     */
+    public function __construct(string $color, ?string $type = null)
     {
         $this->color = $color;
         $this->type = $type ?? $this->deduceType($color);
     }
 
+    /**
+     * Deduce the color type from its format.
+     *
+     * @param string $color
+     * @return string
+     */
     protected function deduceType(string $color): string
     {
         if (in_array($color, self::COLORS)) {
@@ -62,11 +73,21 @@ class Color
         return self::TYPE_UNKNOWN;
     }
 
+    /**
+     * Get the color value.
+     *
+     * @return string
+     */
     public function getColor(): string
     {
         return $this->color;
     }
 
+    /**
+     * Get the color type.
+     *
+     * @return string
+     */
     public function getType(): string
     {
         return $this->type;

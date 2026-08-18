@@ -8,7 +8,11 @@ use Cake\Http\Exception\NotFoundException;
 
 class ExampleController extends AppController
 {
-
+    /**
+     * Only allow the example actions while in debug mode.
+     *
+     * @return void
+     */
     public function initialize(): void
     {
         if (!Configure::read('debug')) {
@@ -16,12 +20,22 @@ class ExampleController extends AppController
         }
     }
 
-
-    public function menu()
+    /**
+     * Example menu action.
+     *
+     * @return void
+     */
+    public function menu(): void
     {
     }
 
-    public function stepper(int $index = 1)
+    /**
+     * Example stepper action.
+     *
+     * @param int $index
+     * @return void
+     */
+    public function stepper(int $index = 1): void
     {
         $this->set(compact('index'));
     }

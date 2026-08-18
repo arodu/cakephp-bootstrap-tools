@@ -1,6 +1,6 @@
 <?php
-
 declare(strict_types=1);
+
 /**
  * BootstrapTools - A CakePHP Plugin
  *
@@ -15,7 +15,6 @@ namespace BootstrapTools;
 
 use Cake\Console\CommandCollection;
 use Cake\Core\BasePlugin;
-use Cake\Core\Configure;
 use Cake\Core\ContainerInterface;
 use Cake\Core\PluginApplicationInterface;
 use Cake\Http\MiddlewareQueue;
@@ -35,7 +34,9 @@ class BootstrapToolsPlugin extends BasePlugin
      * @param \Cake\Core\PluginApplicationInterface $app The host application
      * @return void
      */
-    public function bootstrap(PluginApplicationInterface $app): void {}
+    public function bootstrap(PluginApplicationInterface $app): void
+    {
+    }
 
     /**
      * Add routes for the plugin.
@@ -52,11 +53,11 @@ class BootstrapToolsPlugin extends BasePlugin
         $routes->plugin(
             'BootstrapTools',
             ['path' => '/bootstrap-tools'],
-            function (RouteBuilder $builder) {
+            function (RouteBuilder $builder): void {
                 // Add custom routes here
 
                 $builder->fallbacks();
-            }
+            },
         );
         parent::routes($routes);
     }

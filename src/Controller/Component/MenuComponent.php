@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\Controller\Component;
@@ -22,12 +21,17 @@ class MenuComponent extends Component
         'activeItemKey' => MenuHelper::ACTIVE_ITEM_KEY,
     ];
 
-
-    public function activeItem(string $activeItem)
+    /**
+     * Set the active menu item key on the controller view.
+     *
+     * @param string $activeItem
+     * @return void
+     */
+    public function activeItem(string $activeItem): void
     {
         $this->getController()->set(
             $this->getConfig('menuKey') . '.' . $this->getConfig('activeItemKey'),
-            $activeItem
+            $activeItem,
         );
     }
 }

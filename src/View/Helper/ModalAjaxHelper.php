@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
@@ -98,7 +97,7 @@ class ModalAjaxHelper extends Helper
      * @param array $options
      * @return string
      */
-    public function renderItem(string $target = null, array $options = []): string
+    public function renderItem(?string $target = null, array $options = []): string
     {
         $target = $target ?? $options['target'] ?? $this->getConfig('target');
         $jsCallback = $this->getConfig('jsCallback', null);

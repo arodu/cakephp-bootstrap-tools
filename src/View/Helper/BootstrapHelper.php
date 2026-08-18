@@ -1,14 +1,14 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
 
-use BootstrapTools\View\VisualElement\VisualElementInterface;
 use BootstrapTools\View\VisualElement\VisualElement;
+use BootstrapTools\View\VisualElement\VisualElementInterface;
 use Cake\Utility\Text;
 use Cake\View\Helper;
 use Cake\View\StringTemplateTrait;
+use UtilityKit\Utility\DateFormatter;
 
 /**
  * Bootstrap helper
@@ -80,12 +80,12 @@ class BootstrapHelper extends Helper
     ];
 
     /**
-     * @param VisualElement|VisualElementInterface|array $options
-     * @return VisualElement
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $options
+     * @return \BootstrapTools\View\VisualElement\VisualElement
      */
     protected function visualElement(
         VisualElement|VisualElementInterface|array $element,
-        array $options = []
+        array $options = [],
     ): VisualElement {
         if ($element instanceof VisualElement) {
             return $element;
@@ -113,19 +113,19 @@ class BootstrapHelper extends Helper
      * - `icon` (string|false): Overrides the default icon, or `false` to disable it.
      * - `pill` (bool): Enables the pill style for the badge.
      *
-     * @param VisualElement|VisualElementInterface|array $visualElement The visual element object or an array of properties.
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $visualElement The visual element object or an array of properties.
      * @param array<string, mixed> $options Additional options for customizing the badge.
      * @return string The generated HTML badge element.
      */
     public function badge(
         VisualElement|VisualElementInterface|array $visualElement,
-        array $options = []
+        array $options = [],
     ): string {
         $visualElement = $this->visualElement($visualElement);
 
         $color = $visualElement->getColor() ?: $this->getConfig('badge.color') ?: $this->getConfig('defaults.color');
         $class = 'badge text-bg-' . $color;
-        $class .= ($options['pill'] ?? $this->getConfig('badge.pill') ?? false) ? ' rounded-pill' : '';
+        $class .= $options['pill'] ?? $this->getConfig('badge.pill') ?? false ? ' rounded-pill' : '';
         $class .= ' ' . ($options['class'] ?? '');
 
         $options = array_merge($options, [
@@ -150,13 +150,13 @@ class BootstrapHelper extends Helper
     }
 
     /**
-     * @param VisualElement|VisualElementInterface|array $visualElement
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
      */
     public function text(
         VisualElement|VisualElementInterface|array $visualElement,
-        array $options = []
+        array $options = [],
     ): string {
         $visualElement = $this->visualElement($visualElement);
         $color = $visualElement->getColor() ?: $this->getConfig('defaults.color'); // CHANGED
@@ -181,14 +181,15 @@ class BootstrapHelper extends Helper
             'attrs' => $this->templater()->formatAttributes($options, ['class', 'aria-label', 'icon', 'label']),
         ]);
     }
+
     /**
-     * @param VisualElement|VisualElementInterface|array $visualElement
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
      */
     public function alert(
         VisualElement|VisualElementInterface|array $visualElement,
-        array $options = []
+        array $options = [],
     ): string {
         $visualElement = $this->visualElement($visualElement);
         $color = $visualElement->getColor() ?: $this->getConfig('defaults.color');
@@ -223,7 +224,7 @@ class BootstrapHelper extends Helper
                 'label',
                 'content',
                 'dismissible',
-                'title'
+                'title',
             ]),
 
         ]);
@@ -231,20 +232,20 @@ class BootstrapHelper extends Helper
 
     /**
      * Generates a Bootstrap-styled icon element.
-     * 
+     *
      * visualElement options:
      * - `label` (string): The text to be displayed inside the icon.
      * - `icon` (string): The icon to be displayed.
      * - `color` (string): The color of the icon.
      * - `description` (string): A description used as a tooltip or additional information.
-     * 
-     * @param VisualElement|VisualElementInterface|array $visualElement
+     *
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $visualElement
      * @param array $options
      * @return string
      */
     public function icon(
         VisualElement|VisualElementInterface|array $visualElement,
-        array $options = []
+        array $options = [],
     ): string {
         $visualElement = $this->visualElement($visualElement);
 
@@ -273,9 +274,16 @@ class BootstrapHelper extends Helper
         ]);
     }
 
+    /**
+     * Generates a link styled with a Bootstrap text color.
+     *
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $visualElement
+     * @param array $options
+     * @return string
+     */
     public function link(
         VisualElement|VisualElementInterface|array $visualElement,
-        array $options = []
+        array $options = [],
     ): string {
         $visualElement = $this->visualElement($visualElement);
         $options += ['class' => 'text-decoration-none'];
@@ -300,9 +308,16 @@ class BootstrapHelper extends Helper
         ]);
     }
 
+    /**
+     * Generates a Bootstrap-styled button.
+     *
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $visualElement
+     * @param array $options Button options, including `url`.
+     * @return string
+     */
     public function button(
         VisualElement|VisualElementInterface|array $visualElement,
-        array $options = []
+        array $options = [],
     ): string {
         $visualElement = $this->visualElement($visualElement);
         $color = $visualElement->getColor() ?: $this->getConfig('defaults.color'); // CHANGED
@@ -355,7 +370,7 @@ class BootstrapHelper extends Helper
                     'aria-label',
                     'icon',
                     'label',
-                    'color'
+                    'color',
                 ]),
             ]);
         }
@@ -364,13 +379,13 @@ class BootstrapHelper extends Helper
     }
 
     /**
-     * @param VisualElement $visualElement
+     * @param \BootstrapTools\View\VisualElement\VisualElement $visualElement
      * @param array $options
      * @return array
      */
     protected function tooltipOptions(
         VisualElement $visualElement,
-        array $options = []
+        array $options = [],
     ): array {
         $tooltipPlacement = is_string($options['tooltip'] ?? null)
             ? $options['tooltip']
@@ -389,6 +404,13 @@ class BootstrapHelper extends Helper
         return array_merge($options, $tooltipSpecificOptions);
     }
 
+    /**
+     * Renders the icon HTML for a visual element.
+     *
+     * @param \BootstrapTools\View\VisualElement\VisualElement $visualElement
+     * @param array $options
+     * @return string
+     */
     protected function renderIcon(VisualElement $visualElement, array $options): string
     {
         $iconName = $visualElement->getIcon();
@@ -396,7 +418,9 @@ class BootstrapHelper extends Helper
             $iconName = $options['icon'];
         }
 
-        if ($iconName === false) return '';
+        if ($iconName === false) {
+            return '';
+        }
 
         if (empty($iconName)) {
             $iconName = $this->getConfig('defaults.icon.name');
@@ -410,28 +434,28 @@ class BootstrapHelper extends Helper
     }
 
     /**
-     * @param integer $startYear
+     * @param int $startYear
      * @return string
-     * 
      * @deprecated use UtilityKit\Utility\DateFormatter::copyrightRange instead
      */
     public function copyrightYears(int $startYear): string
     {
-        trigger_deprecation(
-            'arodu/cakephp-bootstrap-tools',
-            '0.0.0',
-            'The %s method is deprecated. Use %s instead.',
-            __METHOD__,
-            'UtilityKit\Utility\DateFormatter::copyrightRange'
+        trigger_error(
+            sprintf(
+                'The %s method is deprecated. Use %s instead.',
+                __METHOD__,
+                'UtilityKit\Utility\DateFormatter::copyrightRange',
+            ),
+            E_USER_DEPRECATED,
         );
 
-        return \UtilityKit\Utility\DateFormatter::copyrightRange($startYear);
+        return DateFormatter::copyrightRange($startYear);
     }
 
     /**
      * Generates a list group item.
      *
-     * @param VisualElement|VisualElementInterface|array $elementData
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $elementData
      * @param array $options Additional options for the list group item.
      * - `tag`: (string) HTML tag for the item ('li', 'a', 'button'). Default 'li'.
      * - `active`: (bool) Is the item active?
@@ -455,7 +479,9 @@ class BootstrapHelper extends Helper
         }
         if (!empty($options['disabled'])) {
             $itemOptions['class'] .= ' disabled';
-            if ($tag !== 'li') $itemOptions['tabindex'] = -1;
+            if ($tag !== 'li') {
+                $itemOptions['tabindex'] = -1;
+            }
             $itemOptions['aria-disabled'] = 'true';
         }
         if ($tag === 'a' || $tag === 'button') {
@@ -465,7 +491,7 @@ class BootstrapHelper extends Helper
             $itemOptions['class'] .= ' ' . $options['class'];
         }
 
-        $url = ($tag === 'a') ? ($element->getUrl() ?? $options['url'] ?? '#') : null;
+        $url = $tag === 'a' ? ($element->getUrl() ?? $options['url'] ?? '#') : null;
 
         $badgeHtml = '';
         if (!empty($options['badge'])) {
@@ -479,7 +505,6 @@ class BootstrapHelper extends Helper
             $contentHtml .= $this->getView()->Html->tag('small', $element->getDescription(), ['class' => 'd-block text-muted']);
         }
 
-
         return $this->formatTemplate('listGroupItem', [
             'tag' => $tag,
             'class' => trim($itemOptions['class']),
@@ -487,7 +512,10 @@ class BootstrapHelper extends Helper
             'icon_html' => $this->renderIcon($element, $options),
             'label_html' => $element->getLabel(),
             'content_html' => $contentHtml,
-            'attrs' => $this->templater()->formatAttributes($options, ['class', 'active', 'disabled', 'tag', 'badge', 'url', 'content']),
+            'attrs' => $this->templater()->formatAttributes(
+                array_merge($itemOptions, $options),
+                ['class', 'active', 'disabled', 'tag', 'badge', 'url', 'content'],
+            ),
         ]);
     }
 
@@ -523,7 +551,6 @@ class BootstrapHelper extends Helper
         }
         $containerTag = $options['tag'] ?? $containerTag;
 
-
         foreach ($items as $itemData) {
             $currentVisualElement = is_string($itemData) ? new VisualElement(0, $itemData) : $itemData;
             $renderedItems[] = $this->listGroupItem($currentVisualElement, $itemOptions);
@@ -542,7 +569,7 @@ class BootstrapHelper extends Helper
         if (!empty($options['class'])) {
             $ulOptions['class'] .= ' ' . $options['class'];
         }
-        $templateName = ($containerTag === 'div') ? 'listGroupDiv' : 'listGroup';
+        $templateName = $containerTag === 'div' ? 'listGroupDiv' : 'listGroup';
 
         return $this->formatTemplate($templateName, [
             'class' => trim($ulOptions['class']),
@@ -552,10 +579,11 @@ class BootstrapHelper extends Helper
     }
 
     // --- NEW METHOD --- Dropdown ---
+
     /**
      * Generates a dropdown item.
      *
-     * @param VisualElement|VisualElementInterface|array $elementData
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $elementData
      * @param array $options
      * - `type`: (string) 'link', 'button', 'header', 'divider'. Default 'link'.
      * - `active`: (bool)
@@ -565,11 +593,15 @@ class BootstrapHelper extends Helper
     public function dropdownItem(VisualElement|VisualElementInterface|array $elementData, array $options = []): string
     {
         $type = $options['type'] ?? 'link'; // link, button, header, divider
-        $element = ($type !== 'divider') ? $this->visualElement($elementData) : null;
+        $element = $type !== 'divider' ? $this->visualElement($elementData) : null;
 
         $itemClass = $options['class'] ?? '';
-        if (!empty($options['active'])) $itemClass .= ' active';
-        if (!empty($options['disabled'])) $itemClass .= ' disabled';
+        if (!empty($options['active'])) {
+            $itemClass .= ' active';
+        }
+        if (!empty($options['disabled'])) {
+            $itemClass .= ' disabled';
+        }
 
         $templateName = 'dropdownItem'; // Default for link
         $vars = [
@@ -593,13 +625,14 @@ class BootstrapHelper extends Helper
         } else {
             return ''; // Invalid type or missing element for type
         }
+
         return $this->formatTemplate($templateName, $vars);
     }
 
     /**
      * Generates a Bootstrap dropdown.
      *
-     * @param VisualElement|VisualElementInterface|array $buttonData Data for the dropdown toggle button.
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $buttonData Data for the dropdown toggle button.
      * @param array $items Array of item data (VisualElement, string for label, or array for options) for dropdownItem.
      * @param array $options
      * - `id`: (string) ID for the dropdown button (auto-generated if not provided).
@@ -632,7 +665,11 @@ class BootstrapHelper extends Helper
                 $renderedItems[] = $this->dropdownItem(new VisualElement(0, $item), []);
             } elseif (is_array($item) && isset($item['type']) && ($item['type'] === 'divider' || $item['type'] === 'header')) {
                 // For dividers or headers passed as arrays
-                $renderedItems[] = $this->dropdownItem($item['element'] ?? ($item['label'] ?? ''), ['type' => $item['type']] + ($item['options'] ?? []));
+                $itemData = $item['element'] ?? ($item['label'] ?? '');
+                if (is_string($itemData)) {
+                    $itemData = new VisualElement(0, $itemData);
+                }
+                $renderedItems[] = $this->dropdownItem($itemData, ['type' => $item['type']] + ($item['options'] ?? []));
             } else { // Assumes VisualElement or array that can be cast to VisualElement
                 $itemData = $item;
                 $itemOpts = [];
@@ -647,7 +684,9 @@ class BootstrapHelper extends Helper
         $menuClass = 'dropdown-menu ' . ($options['menuClass'] ?? '');
         if (!empty($options['align'])) {
             if (is_array($options['align'])) {
-                foreach ($options['align'] as $alignClass) $menuClass .= ' dropdown-menu-' . $alignClass;
+                foreach ($options['align'] as $alignClass) {
+                    $menuClass .= ' dropdown-menu-' . $alignClass;
+                }
             } else {
                 $menuClass .= ' dropdown-menu-' . $options['align'];
             }
@@ -674,8 +713,9 @@ class BootstrapHelper extends Helper
     }
 
     // --- NEW METHOD --- Progress Bar ---
+
     /**
-     * @param VisualElement|VisualElementInterface|array $elementData
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $elementData
      * - `value` in VisualElement is used for current progress.
      * - `label` in VisualElement is for text inside the bar.
      * @param array $options
@@ -693,7 +733,7 @@ class BootstrapHelper extends Helper
         $min = $options['min'] ?? 0;
         $max = $options['max'] ?? 100;
         $value = (int)$element->getValue();
-        $percentage = ($max > $min) ? (($value - $min) / ($max - $min)) * 100 : 0;
+        $percentage = $max > $min ? ($value - $min) / ($max - $min) * 100 : 0;
 
         $barClass = '';
         if ($element->getColor()) {
@@ -709,7 +749,7 @@ class BootstrapHelper extends Helper
             $barClass .= ' ' . $options['class'];
         }
 
-        $labelHtml = ($options['showLabel'] ?? false) ? $element->getLabel() : '';
+        $labelHtml = $options['showLabel'] ?? false ? $element->getLabel() : '';
 
         $barHtml = $this->formatTemplate('progressBar', [
             'class' => trim($barClass),
@@ -732,8 +772,9 @@ class BootstrapHelper extends Helper
     }
 
     // --- NEW METHOD --- Spinner ---
+
     /**
-     * @param VisualElement|VisualElementInterface|array $elementData
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $elementData
      * - `label` for sr-only text.
      * - `color` for text color class.
      * @param array $options
@@ -760,8 +801,9 @@ class BootstrapHelper extends Helper
     }
 
     // --- NEW METHOD --- Toast ---
+
     /**
-     * @param VisualElement|VisualElementInterface|array $elementData
+     * @param \BootstrapTools\View\VisualElement\VisualElement|\BootstrapTools\View\VisualElement\VisualElementInterface|array $elementData
      * - `label`: Header title.
      * - `icon`: Header icon.
      * - `description`: Body content.
@@ -786,23 +828,22 @@ class BootstrapHelper extends Helper
             $options['headerClass'] = ($options['headerClass'] ?? '') . ' bg-' . $element->getColor() . ($this->isDarkColor($element->getColor()) ? ' text-white' : '');
         }
 
-
+        $color = $element->getColor() ?? '';
         $closeButtonHtml = '';
         if ($options['dismissible'] ?? true) {
             $closeButtonHtml = $this->getView()->Html->tag('button', '', [
                 'type' => 'button',
-                'class' => 'btn-close' . ($this->isDarkColor($element->getColor()) && str_contains($options['headerClass'] ?? '', 'bg-') ? ' btn-close-white' : ''),
+                'class' => 'btn-close' . ($this->isDarkColor($color) && str_contains($options['headerClass'] ?? '', 'bg-') ? ' btn-close-white' : ''),
                 'data-bs-dismiss' => 'toast',
-                'aria-label' => 'Close' // Consider internationalization
+                'aria-label' => 'Close', // Consider internationalization
             ]);
         }
 
         $toastAttrs = [];
-        $toastAttrs['data-bs-autohide'] = ($options['autohide'] ?? true) ? 'true' : 'false';
+        $toastAttrs['data-bs-autohide'] = $options['autohide'] ?? true ? 'true' : 'false';
         if ($toastAttrs['data-bs-autohide'] === 'true') {
             $toastAttrs['data-bs-delay'] = (string)($options['delay'] ?? 5000);
         }
-
 
         return $this->formatTemplate('toast', [
             'id' => $toastId,
@@ -819,9 +860,16 @@ class BootstrapHelper extends Helper
     }
 
     // Helper para determinar si un color de Bootstrap es oscuro para contraste de texto
+    /**
+     * Determines whether a Bootstrap color name is dark, for text contrast.
+     *
+     * @param string $colorName
+     * @return bool
+     */
     protected function isDarkColor(string $colorName): bool
     {
         $darkColors = ['primary', 'secondary', 'success', 'danger', 'dark', 'info']; // info puede ser ambiguo
+
         return in_array(strtolower($colorName), $darkColors);
     }
 }

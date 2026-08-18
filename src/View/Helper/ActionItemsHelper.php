@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
@@ -9,11 +8,12 @@ use BootstrapTools\View\ActionItems\ActionItemInterface;
 use BootstrapTools\View\ActionItems\ActionType;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
+use RuntimeException;
 use UtilityKit\Trait\RegisterScopeDataTrait;
 
 /**
  * Helper for rendering action groups.
- * 
+ *
  * @property \Cake\View\Helper\HtmlHelper $Html
  * @property \Cake\View\Helper\PaginatorHelper $Paginator
  * @property \Cake\View\Helper\FormHelper $Form
@@ -52,6 +52,13 @@ class ActionItemsHelper extends Helper
         return $this;
     }
 
+    /**
+     * Registers an action item for the given scope.
+     *
+     * @param \BootstrapTools\View\ActionItems\ActionItemInterface|string $item Action item instance or registry name.
+     * @param array $options Options to merge into the action item.
+     * @return self
+     */
     public function setItem(ActionItemInterface|string $item, array $options = []): self
     {
         $scope = $this->getScopeName($options['scope'] ?? null);
@@ -66,6 +73,13 @@ class ActionItemsHelper extends Helper
         return $this;
     }
 
+    /**
+     * Registers an action item definition in the registry.
+     *
+     * @param string $name Registry name.
+     * @param array $options Action item options.
+     * @return self
+     */
     public function registry(string $name, array $options = []): self
     {
         $this->actionItemClass()::set($name, $options);
@@ -94,12 +108,12 @@ class ActionItemsHelper extends Helper
 
     /**
      * Render the actions
-     * 
+     *
      * Options:
      * - scope: string|null
      * - reset: bool
      * - group: bool
-     * 
+     *
      * @param array $options
      * @return string
      */
@@ -132,6 +146,12 @@ class ActionItemsHelper extends Helper
         return $output;
     }
 
+    /**
+     * Renders a single action item according to its type.
+     *
+     * @param \BootstrapTools\View\ActionItems\ActionItemInterface $item Action item to render.
+     * @return string Rendered HTML.
+     */
     public function renderItem(ActionItemInterface $item): string
     {
         $data = $item->toArray();
@@ -141,46 +161,63 @@ class ActionItemsHelper extends Helper
         switch ($type) {
             case ActionType::Link:
                 $options = $this->formatOptions($data);
+
                 return $this->Html->link($options['label'], $options['url'], $options['options']);
 
             case ActionType::PostLink:
                 $options = $this->formatOptions($data);
+
                 return $this->Form->postLink($options['label'], $options['url'], $options['options']);
 
             case ActionType::Button:
                 $options = $this->formatOptions($data);
+
                 return $this->Form->button($options['label'], $options['options']);
 
             case ActionType::LimitControl:
                 $options = $data;
+
                 return $this->Paginator->limitControl($options['limits'], null, $options['options']);
 
             case ActionType::ModalLink:
                 $options = $this->formatOptions($data);
+
                 return $this->ModalAjax->link($options['label'], $options['url'], $options['options']);
 
             case ActionType::Dropdown:
-                $options = $this->formatOptions($data);
+                // Dropdown rendering is not implemented yet.
+                // Fall through to default.
 
             default:
                 return '';
         }
     }
 
-
+    /**
+     * Resolves the configured action item class.
+     *
+     * @return string
+     */
     protected function actionItemClass(): string
     {
         if (empty($this->actionItemClass)) {
             $this->actionItemClass = $this->getConfig('actionItemClass') ?? ActionItem::class;
 
             if (!class_exists($this->actionItemClass) || !is_subclass_of($this->actionItemClass, ActionItemInterface::class)) {
-                throw new \RuntimeException('Action item class not found, or does not implement ' . ActionItemInterface::class);
+                throw new RuntimeException('Action item class not found, or does not implement ' . ActionItemInterface::class);
             }
         }
 
         return $this->actionItemClass;
     }
 
+    /**
+     * Marks a registry key as a dropdown group for a scope.
+     *
+     * @param string $key Registry key.
+     * @param array $options
+     * @return self
+     */
     public function dropdown(string $key, array $options = []): self
     {
         $scope = $this->getScopeName($options['scope'] ?? null);

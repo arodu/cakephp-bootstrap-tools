@@ -1,37 +1,48 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\ActionItems;
 
 use Cake\Utility\Hash;
+use InvalidArgumentException;
 
 class ActionItem implements ActionItemInterface
 {
-    const DEFAULT = 'default';
-    const INDEX = 'index';
-    const ADD = 'add';
-    const EDIT = 'edit';
-    const DELETE = 'delete';
-    const VIEW = 'view';
-    const LIMIT_CONTROL = 'limit_control';
-    const SUBMIT = 'submit';
-    const CANCEL = 'cancel';
-    const OPEN_MODAL = 'open_modal';
-    const CLOSE_MODAL = 'close_modal';
-    const AJAX_SUBMIT = 'ajax_submit';
-    const BUTTON = 'button';
-    const RESET = 'reset';
+    public const DEFAULT = 'default';
+    public const INDEX = 'index';
+    public const ADD = 'add';
+    public const EDIT = 'edit';
+    public const DELETE = 'delete';
+    public const VIEW = 'view';
+    public const LIMIT_CONTROL = 'limit_control';
+    public const SUBMIT = 'submit';
+    public const CANCEL = 'cancel';
+    public const OPEN_MODAL = 'open_modal';
+    public const CLOSE_MODAL = 'close_modal';
+    public const AJAX_SUBMIT = 'ajax_submit';
+    public const BUTTON = 'button';
+    public const RESET = 'reset';
 
     protected static array $registry = [];
 
     private array $options;
 
+    /**
+     * Constructor.
+     *
+     * @param array $options Action item options.
+     */
     private function __construct(array $options = [])
     {
         $this->options = $options;
     }
 
+    /**
+     * Merge options into the action item and return a new instance.
+     *
+     * @param array $options
+     * @return \BootstrapTools\View\ActionItems\ActionItemInterface
+     */
     public function withOptions(array $options = []): ActionItemInterface
     {
         $this->options = Hash::merge($this->options, $options);
@@ -39,6 +50,11 @@ class ActionItem implements ActionItemInterface
         return $this;
     }
 
+    /**
+     * Returns the action item as an array.
+     *
+     * @return array
+     */
     public function toArray(): array
     {
         return $this->options;
@@ -46,12 +62,12 @@ class ActionItem implements ActionItemInterface
 
     /**
      * Set an action item by name
-     * 
+     *
      * usage:
      * ```php
      * ActionItem::set('index', ['label' => __('List Projects')]);
      * ```
-     * 
+     *
      * @param string $name
      * @param array $options
      * @return void
@@ -61,7 +77,7 @@ class ActionItem implements ActionItemInterface
         $options = Hash::merge(static::$registry[$name] ?? static::defaultOptions($name), $options);
 
         if (empty($options['type']) || !($options['type'] instanceof ActionType)) {
-            throw new \InvalidArgumentException(sprintf('Argument "type" must be an instance of `%s`', ActionType::class));
+            throw new InvalidArgumentException(sprintf('Argument "type" must be an instance of `%s`', ActionType::class));
         }
 
         static::$registry[$name] = $options;
@@ -69,13 +85,13 @@ class ActionItem implements ActionItemInterface
 
     /**
      * Get an action item by name
-     * 
+     *
      * usage:
      * ```php
      * $item1 = ActionItem::get('index');
      * $item2 = ActionItem::get('index')->withOptions(['label' => __('List Projects')]);
      * ```
-     * 
+     *
      * @param string $name
      * @return static
      */
@@ -86,12 +102,12 @@ class ActionItem implements ActionItemInterface
             return new static($options);
         }
 
-        throw new \InvalidArgumentException(
+        throw new InvalidArgumentException(
             sprintf(
                 'Action item "%s" in not registred, use `%s::set(string $name, array $options)` to registred',
                 $name,
-                static::class
-            )
+                static::class,
+            ),
         );
     }
 

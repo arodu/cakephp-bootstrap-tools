@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
@@ -8,6 +7,7 @@ use Cake\Routing\Router;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
 use Cake\View\StringTemplateTrait;
+use InvalidArgumentException;
 
 /**
  * Stepper helper
@@ -16,9 +16,9 @@ class StepperHelper extends Helper
 {
     use StringTemplateTrait;
 
-    const STATUS_CURRENT = 'current';
-    const STATUS_COMPLETED = 'completed';
-    const STATUS_DISABLED = 'disabled';
+    public const STATUS_CURRENT = 'current';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_DISABLED = 'disabled';
 
     /**
      * Default configuration.
@@ -58,7 +58,7 @@ class StepperHelper extends Helper
     public function addItem(array $options = []): self
     {
         if (empty($options['label'])) {
-            throw new \InvalidArgumentException('You must provide a label and a URL for each step');
+            throw new InvalidArgumentException('You must provide a label and a URL for each step');
         }
 
         $this->steps[] = Hash::merge([
@@ -85,7 +85,7 @@ class StepperHelper extends Helper
     }
 
     /**
-     * @param integer|null $index
+     * @param int|null $index
      * @return self
      */
     public function currentStep(?int $index = null): self
@@ -116,8 +116,8 @@ class StepperHelper extends Helper
 
     /**
      * @param array $item
-     * @param integer $index
-     * @param boolean $current
+     * @param int $index
+     * @param bool $current
      * @return string
      */
     public function renderItem(array $item, int $index): string

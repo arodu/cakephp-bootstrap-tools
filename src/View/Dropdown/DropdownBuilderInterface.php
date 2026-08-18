@@ -1,4 +1,6 @@
 <?php
+declare(strict_types=1);
+
 namespace BootstrapTools\View\Dropdown;
 
 interface DropdownBuilderInterface
@@ -18,5 +20,11 @@ interface DropdownBuilderInterface
      */
     public function getOptions(): array;
 
+    /**
+     * Set dropdown items.
+     *
+     * @param array $items Menu items configuration.
+     * @return $this
+     */
     public function items(array $items): self;
 }

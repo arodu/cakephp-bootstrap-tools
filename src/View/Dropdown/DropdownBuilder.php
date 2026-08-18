@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Dropdown;
@@ -12,7 +11,7 @@ class DropdownBuilder implements DropdownBuilderInterface
 
     /**
      * Default configuration options
-     * 
+     *
      * @var array
      */
     protected array $_defaultConfig = [
@@ -22,14 +21,14 @@ class DropdownBuilder implements DropdownBuilderInterface
                 'class' => 'btn btn-primary dropdown-toggle',
                 'type' => 'button',
                 'data-bs-toggle' => 'dropdown',
-                'aria-expanded' => 'false'
-            ]
+                'aria-expanded' => 'false',
+            ],
         ],
         'split' => false,
         'direction' => 'down',
         'menu' => [
             'class' => 'dropdown-menu',
-            'items' => []
+            'items' => [],
         ],
         'element' => 'BootstrapTools.dropdown/default',
     ];
@@ -53,6 +52,7 @@ class DropdownBuilder implements DropdownBuilderInterface
     public function setOptions(array $options): self
     {
         $this->setConfig($options);
+
         return $this;
     }
 
@@ -73,7 +73,7 @@ class DropdownBuilder implements DropdownBuilderInterface
      * @param array $options Button attributes
      * @return $this
      */
-    public function button(string $text, array $options = []): self
+    public function button(string $text, array $options = [])
     {
         $this->setConfig('button.text', $text);
 
@@ -94,6 +94,7 @@ class DropdownBuilder implements DropdownBuilderInterface
     public function items(array $items): self
     {
         $this->setConfig('menu.items', $items);
+
         return $this;
     }
 
@@ -105,7 +106,7 @@ class DropdownBuilder implements DropdownBuilderInterface
      * @param array $options Item attributes
      * @return $this
      */
-    public function addItem(string $text, $url = null, array $options = []): self
+    public function addItem(string $text, array|string|null $url = null, array $options = [])
     {
         $items = $this->getConfig('menu.items') ?? [];
         $items[] = compact('text', 'url', 'options');
@@ -120,9 +121,10 @@ class DropdownBuilder implements DropdownBuilderInterface
      * @param string $direction Direction (down|up|start|end)
      * @return $this
      */
-    public function direction(string $direction): self
+    public function direction(string $direction)
     {
         $this->setConfig('direction', $direction);
+
         return $this;
     }
 
@@ -132,9 +134,10 @@ class DropdownBuilder implements DropdownBuilderInterface
      * @param bool $enable Enable/disable split mode
      * @return $this
      */
-    public function split(bool $enable = true): self
+    public function split(bool $enable = true)
     {
         $this->setConfig('split', $enable);
+
         return $this;
     }
 
@@ -144,10 +147,11 @@ class DropdownBuilder implements DropdownBuilderInterface
      * @param array $options Menu attributes
      * @return $this
      */
-    public function menuOptions(array $options): self
+    public function menuOptions(array $options)
     {
         $currentOptions = $this->getConfig('menu') ?? [];
         $this->setConfig('menu', array_merge($currentOptions, $options));
+
         return $this;
     }
 
@@ -156,7 +160,7 @@ class DropdownBuilder implements DropdownBuilderInterface
      *
      * @return $this
      */
-    public function addDivider(): self
+    public function addDivider()
     {
         $items = $this->getConfig('menu.items') ?? [];
         $items[] = ['divider' => true];
@@ -171,7 +175,7 @@ class DropdownBuilder implements DropdownBuilderInterface
      * @param string $text Header text
      * @return $this
      */
-    public function addHeader(string $text): self
+    public function addHeader(string $text)
     {
         $items = $this->getConfig('menu.items') ?? [];
         $items[] = ['header' => $text];

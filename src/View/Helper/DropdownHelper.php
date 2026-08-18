@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
@@ -8,6 +7,7 @@ use BootstrapTools\View\Dropdown\DropdownBuilder;
 use BootstrapTools\View\Dropdown\DropdownBuilderInterface;
 use Cake\Utility\Hash;
 use Cake\View\Helper;
+use InvalidArgumentException;
 
 class DropdownHelper extends Helper
 {
@@ -25,22 +25,22 @@ class DropdownHelper extends Helper
                 'class' => 'btn btn-primary dropdown-toggle',
                 'type' => 'button',
                 'data-bs-toggle' => 'dropdown',
-                'aria-expanded' => 'false'
-            ]
+                'aria-expanded' => 'false',
+            ],
         ],
         'split' => false,
         'direction' => 'down',
         'menu' => [
             'class' => 'dropdown-menu',
-            'items' => []
-        ]
+            'items' => [],
+        ],
     ];
 
     /**
      * Creates a dropdown builder instance
      *
      * @param array $options Dropdown configuration options
-     * @return DropdownBuilderInterface
+     * @return \BootstrapTools\View\Dropdown\DropdownBuilderInterface
      */
     public function create(array $options = []): DropdownBuilderInterface
     {
@@ -48,10 +48,10 @@ class DropdownHelper extends Helper
         $builderClass = $config['builder'];
 
         if (!is_subclass_of($builderClass, DropdownBuilderInterface::class)) {
-            throw new \InvalidArgumentException(sprintf(
+            throw new InvalidArgumentException(sprintf(
                 'The builder class "%s" must implement "%s".',
                 $builderClass,
-                DropdownBuilderInterface::class
+                DropdownBuilderInterface::class,
             ));
         }
 
@@ -61,7 +61,7 @@ class DropdownHelper extends Helper
     /**
      * Renders the dropdown
      *
-     * @param DropdownBuilderInterface $builder Dropdown builder instance
+     * @param \BootstrapTools\View\Dropdown\DropdownBuilderInterface $builder Dropdown builder instance
      * @param array $options Additional rendering options
      * @return string Rendered HTML
      */

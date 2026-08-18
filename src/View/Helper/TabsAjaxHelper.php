@@ -1,12 +1,10 @@
 <?php
-
 declare(strict_types=1);
 
 namespace BootstrapTools\View\Helper;
 
 use Cake\Utility\Hash;
 use Cake\View\Helper;
-use Cake\View\View;
 
 /**
  * TabsAjax helper
@@ -30,7 +28,12 @@ class TabsAjaxHelper extends Helper
         ],
     ];
 
-    protected $tabs = [];
+    /**
+     * Registered tabs.
+     *
+     * @var array<int|string, array<string, mixed>>
+     */
+    protected array $tabs = [];
 
     /**
      * @param string $key
@@ -79,7 +82,7 @@ class TabsAjaxHelper extends Helper
                 'aria-selected' => 'true',
                 'tabindex' => '-1',
             ],
-            $options
+            $options,
         );
 
         $label = $options['label'] ?? $key;
@@ -102,7 +105,7 @@ class TabsAjaxHelper extends Helper
         return $this->getView()->Html->tag(
             'li',
             $this->getView()->Html->link($label, $keyId, $options),
-            ['class' => 'nav-item', 'role' => 'presentation']
+            ['class' => 'nav-item', 'role' => 'presentation'],
         );
     }
 
