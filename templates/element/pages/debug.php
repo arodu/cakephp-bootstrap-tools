@@ -239,13 +239,13 @@ $this->assign('title', 'CakePHP: the rapid development php framework');
     }
 
     .bullet.success::before {
-        content: '✔';
+        content: '🟢';
         color: #28a745;
         margin-right: 0.5rem;
     }
 
     .bullet.problem::before {
-        content: '✘';
+        content: '🔴';
         color: #dc3545;
         margin-right: 0.5rem;
     }
